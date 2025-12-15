@@ -1,0 +1,11 @@
+{
+  "name": "scandroid devcontainer",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {},
+  "postCreateCommand": "echo 'Devcontainer ready'",
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
