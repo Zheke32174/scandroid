@@ -10,6 +10,8 @@ __all__ = [
     "mount_colab_drive",
     "get_github_user",
     "run_codex_completion",
+    "set_runtime_secrets",
+    "runtime_ready",
 ]
 
 
@@ -97,3 +99,55 @@ def run_codex_completion(prompt: str, model: str = "gpt-4o-mini", api_key: Optio
         **kwargs,
     )
     return response.choices[0].message.content or ""
+
+
+def set_runtime_secrets(
+    *,
+    openai_api_key: Optional[str] = None,
+    github_token: Optional[str] = None,
+) -> Dict[str, bool]:
+    """Inject secrets into environment variables for ephemeral runtimes (e.g., Colab).
+
+    This helper avoids writing credentials to disk and keeps everything in-memory.
+
+    Parameters
+    ----------
+    openai_api_key: Optional[str]
+        The OpenAI API key to set as ``OPENAI_API_KEY``.
+    github_token: Optional[str]
+        The GitHub token to set as ``GITHUB_TOKEN``.
+
+    Returns
+    -------
+    Dict[str, bool]
+        Flags indicating which secrets are present after the update.
+    """
+    if openai_api_key:
+        os.environ["OPENAI_API_KEY"] = openai_api_key
+    if github_token:
+        os.environ["GITHUB_TOKEN"] = github_token
+
+    return {
+        "openai_api_key": bool(os.environ.get("OPENAI_API_KEY")),
+        "github_token": bool(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")),
+    }
+
+
+def runtime_ready(require_openai: bool = True, require_github: bool = True) -> bool:
+    """Check if required environment variables are available before connecting.
+
+    Parameters
+    ----------
+    require_openai: bool
+        Whether an OpenAI API key is required.
+    require_github: bool
+        Whether a GitHub token is required.
+
+    Returns
+    -------
+    bool
+        True if the requested secrets are present in the environment.
+    """
+    openai_ok = bool(os.environ.get("OPENAI_API_KEY")) or not require_openai
+    github_ok = bool(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")) or not require_github
+    return openai_ok and github_ok
