@@ -13,6 +13,11 @@ sudo apt-get install -y nodejs npm
 
 # Optional: Install Docker CLI (if needed)
 sudo apt-get install -y docker.io
+# Install google-gemini-cli globally
+if ! npm list -g | grep -q 'google-gemini-cli'; then
+  echo "Installing google-gemini-cli globally..."
+  npm install -g google-gemini-cli || echo "Warning: google-gemini-cli may not be published to npm. Manual install may be required."
+fi
 # Install Homebrew (Linuxbrew)
 if ! command -v brew &> /dev/null; then
   echo "Installing Homebrew..."
