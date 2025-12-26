@@ -26,9 +26,4 @@ if ! command -v brew &> /dev/null; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
-# Mark setup as complete
-if [ ! -f "$HOME/.codespace_setup_complete" ]; then
-  echo "Setup completed on $(date)" > "$HOME/.codespace_setup_complete"
-fi
-
 echo "Persistent Codespace environment is ready!"
