@@ -62,3 +62,9 @@ from integrations import mount_colab_drive, run_codex_completion, get_github_use
 - When running in GitHub Codespaces, the `.devcontainer` files will bootstrap a consistent environment.
 - Keep tokens in environment variables or a local secrets manager; avoid committing credentials to the repository.
 - Update `bridge_setup.md` if you change how filesystem snapshots are generated.
+
+## Existing Colab work
+A Colab notebook with prior work toward this project is available at:
+https://colab.research.google.com/drive/12evzbkc2jYIlzDX_k9O23sWumMF_npzL#scrollTo=6f7043f8
+
+Open it in Colab, then use the cells in `scandroid.ipynb` to set in-memory secrets and connect to Codex/GitHub without writing anything to local storage.
