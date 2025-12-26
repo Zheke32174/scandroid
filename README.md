@@ -1,6 +1,6 @@
 # Scandroid
 
-Utilities to bridge work across Google Colab, OpenAI Codex-compatible APIs, and GitHub from a single notebook—without writing secrets or artifacts to local disk.
+Utilities to bridge work across Google Colab, OpenAI Codex-compatible APIs, and GitHub from a single notebook—without writing secrets or artifacts to local disk. You can keep everything in-memory and avoid mounting Drive if you have **no local space** available.
 
 ## Contents
 - `scandroid.ipynb`: Notebook with ready-to-run cells for Colab, Codex, and GitHub connectivity.
@@ -36,6 +36,7 @@ The `integrations.py` module exposes convenience functions:
 - `get_github_user(token=None)`: Fetches the authenticated GitHub user profile using the provided token or `GITHUB_TOKEN`/`GH_TOKEN`.
 - `set_runtime_secrets(openai_api_key=None, github_token=None)`: Stores secrets in memory-backed environment variables so nothing is written to disk.
 - `runtime_ready(require_openai=True, require_github=True)`: Quickly verify whether the required secrets are present before connecting.
+- `runtime_context()`: Inspect whether you are running in Colab, whether Drive is mounted, and whether required tokens are present—all without touching the filesystem.
 
 Example usage inside the notebook:
 ```python
@@ -51,6 +52,10 @@ from integrations import mount_colab_drive, run_codex_completion, get_github_use
 # Generate code with Codex-style completion
 # code = run_codex_completion("Write a Python function that reverses a string")
 # print(code)
+
+# Check runtime state without writing to disk
+# from integrations import runtime_context
+# print(runtime_context())
 ```
 
 ## Tips

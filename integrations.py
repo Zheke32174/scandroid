@@ -12,6 +12,7 @@ __all__ = [
     "run_codex_completion",
     "set_runtime_secrets",
     "runtime_ready",
+    "runtime_context",
 ]
 
 
@@ -151,3 +152,19 @@ def runtime_ready(require_openai: bool = True, require_github: bool = True) -> b
     openai_ok = bool(os.environ.get("OPENAI_API_KEY")) or not require_openai
     github_ok = bool(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")) or not require_github
     return openai_ok and github_ok
+
+
+def runtime_context() -> Dict[str, Any]:
+    """Return a lightweight snapshot of the current runtime state.
+
+    This helper never writes to disk; it only inspects environment flags so you
+    can branch logic for Colab/Codespaces without persisting anything.
+    """
+    is_colab = bool(os.environ.get("COLAB_GPU") or os.environ.get("G_COLAB_GPU"))
+    drive_mounted = os.path.ismount("/content/drive")
+    return {
+        "is_colab": is_colab,
+        "drive_mounted": drive_mounted,
+        "openai_api_key_present": bool(os.environ.get("OPENAI_API_KEY")),
+        "github_token_present": bool(os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")),
+    }
