@@ -6,7 +6,12 @@
   "customizations": {
     "vscode": {
       "settings": {},
-      "extensions": []
+      "extensions": [
+        "ms-python.python",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.codespaces"
+      ]
     }
   }
 }
