@@ -1,0 +1,17 @@
+{
+  "name": "Persistent Codespace Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {},
+  "postCreateCommand": "bash ./setup.sh || true",
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": [
+        "ms-python.python",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.codespaces"
+      ]
+    }
+  }
+}
