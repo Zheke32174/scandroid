@@ -36,7 +36,7 @@ The `integrations.py` module exposes convenience functions:
 - `get_github_user(token=None)`: Fetches the authenticated GitHub user profile using the provided token or `GITHUB_TOKEN`/`GH_TOKEN`.
 - `set_runtime_secrets(openai_api_key=None, github_token=None)`: Stores secrets in memory-backed environment variables so nothing is written to disk.
 - `runtime_ready(require_openai=True, require_github=True)`: Quickly verify whether the required secrets are present before connecting.
-- `runtime_context()`: Inspect whether you are running in Colab, whether Drive is mounted, and whether required tokens are present—all without touching the filesystem.
+- `runtime_context()`: Inspect whether you are running in Colab, whether Drive is mounted, and whether required tokens are present. Reads OS mount state but does not write to disk or persist anything.
 
 Example usage inside the notebook:
 ```python
@@ -53,7 +53,7 @@ from integrations import mount_colab_drive, run_codex_completion, get_github_use
 # code = run_codex_completion("Write a Python function that reverses a string")
 # print(code)
 
-# Check runtime state without writing to disk
+# Inspect runtime state (no writes to disk)
 # from integrations import runtime_context
 # print(runtime_context())
 ```
@@ -63,8 +63,3 @@ from integrations import mount_colab_drive, run_codex_completion, get_github_use
 - Keep tokens in environment variables or a local secrets manager; avoid committing credentials to the repository.
 - Update `bridge_setup.md` if you change how filesystem snapshots are generated.
 
-## Existing Colab work
-A Colab notebook with prior work toward this project is available at:
-https://colab.research.google.com/drive/12evzbkc2jYIlzDX_k9O23sWumMF_npzL#scrollTo=6f7043f8
-
-Open it in Colab, then use the cells in `scandroid.ipynb` to set in-memory secrets and connect to Codex/GitHub without writing anything to local storage.

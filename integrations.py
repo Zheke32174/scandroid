@@ -1,10 +1,13 @@
-"""Helper utilities to connect Colab, Codex (OpenAI), and GitHub services."""
+"""Helper utilities to connect Colab, Codex (OpenAI), and GitHub services.
+
+The optional dependencies (``requests``, ``openai``, ``google.colab``) are
+imported lazily inside the functions that use them, so importing this
+module never fails on environments that only need a subset of the helpers.
+"""
 from __future__ import annotations
 
 from typing import Optional, Dict, Any
 import os
-import requests
-from openai import OpenAI
 
 __all__ = [
     "mount_colab_drive",
@@ -28,8 +31,20 @@ def mount_colab_drive(force_remount: bool = False) -> str:
     -------
     str
         The mount point used by Colab.
+
+    Raises
+    ------
+    RuntimeError
+        If ``google.colab`` is not importable, i.e., when running outside
+        a Colab runtime.
     """
-    from google.colab import drive  # type: ignore
+    try:
+        from google.colab import drive  # type: ignore
+    except ImportError as e:
+        raise RuntimeError(
+            "mount_colab_drive() is only supported inside Google Colab. "
+            "google.colab is not available in this environment."
+        ) from e
 
     mount_point = "/content/drive"
     drive.mount(mount_point, force_remount=force_remount)
@@ -47,11 +62,21 @@ def get_github_user(token: Optional[str] = None) -> Dict[str, Any]:
 
     Raises
     ------
+    RuntimeError
+        If the ``requests`` package is not installed.
     ValueError
         If no token is provided and no environment variable is available.
     requests.HTTPError
         If the GitHub API rejects the request.
     """
+    try:
+        import requests
+    except ImportError as e:
+        raise RuntimeError(
+            "get_github_user() requires the 'requests' package. "
+            "Install with: pip install requests"
+        ) from e
+
     github_token = token or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
     if not github_token:
         raise ValueError("Provide a GitHub token or set GITHUB_TOKEN/GH_TOKEN.")
@@ -88,7 +113,22 @@ def run_codex_completion(prompt: str, model: str = "gpt-4o-mini", api_key: Optio
     -------
     str
         The text content returned by the model.
+
+    Raises
+    ------
+    RuntimeError
+        If the ``openai`` package is not installed.
+    ValueError
+        If no API key is provided and ``OPENAI_API_KEY`` is unset.
     """
+    try:
+        from openai import OpenAI
+    except ImportError as e:
+        raise RuntimeError(
+            "run_codex_completion() requires the 'openai' package. "
+            "Install with: pip install openai"
+        ) from e
+
     key = api_key or os.environ.get("OPENAI_API_KEY")
     if not key:
         raise ValueError("Provide an OpenAI API key or set OPENAI_API_KEY.")
@@ -157,8 +197,8 @@ def runtime_ready(require_openai: bool = True, require_github: bool = True) -> b
 def runtime_context() -> Dict[str, Any]:
     """Return a lightweight snapshot of the current runtime state.
 
-    This helper never writes to disk; it only inspects environment flags so you
-    can branch logic for Colab/Codespaces without persisting anything.
+    Reads environment flags and the OS mount table to determine context;
+    does not write to disk and does not persist any state.
     """
     is_colab = bool(os.environ.get("COLAB_GPU") or os.environ.get("G_COLAB_GPU"))
     drive_mounted = os.path.ismount("/content/drive")
