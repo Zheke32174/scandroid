@@ -12,7 +12,7 @@ tree.
 - **Source blog:** [githubawesome.com](https://githubawesome.com/) (companion to the github-trending-today YouTube channel).
 - **Count:** 1,835 distinct repos across 37 alphabetical shards + 39 by-category shards.
 - **Freshness:** see [`freshness-report.md`](freshness-report.md) (~94% alive at last sweep).
-- **Session handoff:** [`understory:home-agents/2026-05-07-session-handoff.md`](https://github.com/Zheke32174/understory/blob/master/home-agents/2026-05-07-session-handoff.md) — entry point for the next session.
+- **Session handoffs:** [`understory:home-agents/`](https://github.com/Zheke32174/understory/tree/master/home-agents) — start at [`README.md`](https://github.com/Zheke32174/understory/blob/master/home-agents/README.md), then read [`STACK-PLAYBOOK.md`](https://github.com/Zheke32174/understory/blob/master/home-agents/STACK-PLAYBOOK.md) (canonical architecture) and the [latest dated handoff](https://github.com/Zheke32174/understory/blob/master/home-agents/2026-05-07-session-handoff.md) (session-specific state).
 - **Last refresh:** 2026-05-07.
 
 To update this mirror, re-run the generator in understory (it produces all
