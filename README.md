@@ -2,6 +2,11 @@
 
 Utilities to bridge work across Google Colab, OpenAI Codex-compatible APIs, and GitHub from a single notebook—without writing secrets or artifacts to local disk. You can keep everything in-memory and avoid mounting Drive if you have **no local space** available.
 
+Part of a 5-repo cluster — see [CLUSTER.md](CLUSTER.md) for the
+4-body nucleic orbit + connection house topology. This repo is a
+**sapling** — an artifact produced by the understory trunk that
+demonstrates Colab ↔ Codex ↔ GitHub bridge coordination.
+
 ## Contents
 - `scandroid.ipynb`: Notebook with ready-to-run cells for Colab, Codex, and GitHub connectivity.
 - `integrations.py`: Lightweight helpers for mounting Google Drive in Colab, calling OpenAI models, and retrieving GitHub user data.
@@ -62,4 +67,3 @@ from integrations import mount_colab_drive, run_codex_completion, get_github_use
 - When running in GitHub Codespaces, the `.devcontainer` files will bootstrap a consistent environment.
 - Keep tokens in environment variables or a local secrets manager; avoid committing credentials to the repository.
 - Update `bridge_setup.md` if you change how filesystem snapshots are generated.
-
