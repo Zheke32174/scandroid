@@ -5,14 +5,14 @@ in **understory**. Hosted here so scandroid notebooks (Colab / Codespaces)
 can use the curation index offline without cloning the larger understory
 tree.
 
-- **Canonical source:** [`understory:analysis/scraped/blog-extracted/`](https://github.com/Zheke32174/understory/tree/master/analysis/scraped/blog-extracted)
-- **Generator:** [`understory:scripts/scrape-blog.py`](https://github.com/Zheke32174/understory/blob/master/scripts/scrape-blog.py)
-- **Categorizer:** [`understory:scripts/categorize-blog-extracted.py`](https://github.com/Zheke32174/understory/blob/master/scripts/categorize-blog-extracted.py)
-- **Source attribution:** [`understory:credits/sources/github-awesome-blog.yml`](https://github.com/Zheke32174/understory/blob/master/credits/sources/github-awesome-blog.yml) — *as we use them, if we use them* policy.
+- **Canonical source:** [`understory:analysis/scraped/blog-extracted/`](https://github.com/Zheke32174/understory/tree/claude/general-session-NEys8/analysis/scraped/blog-extracted)
+- **Generator:** [`understory:scripts/scrape-blog.py`](https://github.com/Zheke32174/understory/blob/claude/general-session-NEys8/scripts/scrape-blog.py)
+- **Categorizer:** [`understory:scripts/categorize-blog-extracted.py`](https://github.com/Zheke32174/understory/blob/claude/general-session-NEys8/scripts/categorize-blog-extracted.py)
+- **Source attribution:** [`understory:credits/sources/github-awesome-blog.yml`](https://github.com/Zheke32174/understory/blob/claude/general-session-NEys8/credits/sources/github-awesome-blog.yml) — *as we use them, if we use them* policy.
 - **Source blog:** [githubawesome.com](https://githubawesome.com/) (companion to the github-trending-today YouTube channel).
 - **Count:** 1,835 distinct repos across 37 alphabetical shards + 39 by-category shards.
 - **Freshness:** see [`freshness-report.md`](freshness-report.md) (~94% alive at last sweep).
-- **Session handoffs:** [`understory:home-agents/`](https://github.com/Zheke32174/understory/tree/master/home-agents) — start at [`README.md`](https://github.com/Zheke32174/understory/blob/master/home-agents/README.md), then read [`STACK-PLAYBOOK.md`](https://github.com/Zheke32174/understory/blob/master/home-agents/STACK-PLAYBOOK.md) (canonical architecture) and the [latest dated handoff](https://github.com/Zheke32174/understory/blob/master/home-agents/2026-05-07-session-handoff.md) (session-specific state).
+- **Session handoffs:** [`understory:home-agents/`](https://github.com/Zheke32174/understory/tree/claude/general-session-NEys8/home-agents) — start at [`README.md`](https://github.com/Zheke32174/understory/blob/claude/general-session-NEys8/home-agents/README.md), then read [`STACK-PLAYBOOK.md`](https://github.com/Zheke32174/understory/blob/claude/general-session-NEys8/home-agents/STACK-PLAYBOOK.md) (canonical architecture) and the [latest dated handoff](https://github.com/Zheke32174/understory/blob/claude/general-session-NEys8/home-agents/2026-05-07-session-handoff.md) (session-specific state).
 - **Last refresh:** 2026-05-07.
 
 To update this mirror, re-run the generator in understory (it produces all
