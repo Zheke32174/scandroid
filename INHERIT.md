@@ -1,39 +1,67 @@
 # Inheritance line
 
-The cluster's inheritance is **3 internal stations + 3 external
-lineages**. This file is the **spine** — a one-page navigation
-surface. [BLUEPRINT.md](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md)
+The agent's full inheritance is **5 third-party scaffolding repos
+(the baseline framework) + 5 cluster repos**. Every agent in this
+cluster inherits both, in parallel, automatically, on spawn.
+
+This file is the **spine** — a one-page navigation surface.
+[BLUEPRINT.md](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md)
 is the load-bearing reference; [CLUSTER.md](CLUSTER.md) is the
 topology map.
 
-Read top to bottom. Each station teaches. Each station owes upstream.
+## The baseline framework — third-party scaffolding (5 repos)
 
-## The line
+These are the repos agents inherit from going forward, in parallel,
+automatically. Not lineages we are deciding to absorb later — the
+substrate the cluster is built on.
 
-### Internal triad — the automaton
+1. **[strongdm/attractor](https://github.com/strongdm/attractor) —
+   Autonomous shipping.** A three-person team shipping production
+   code no human reads; ~$1k/day per engineer in LLM tokens. The
+   structural commitment to operating without human-in-the-loop on
+   code paths.
 
-The cluster's three internal stations together **are an automaton**.
-The pattern has two named edges, both surfaced from the cluster's
-own awesome-opencode scrape at
+2. **[Conway-Research/automaton](https://github.com/Conway-Research/automaton) —
+   Runtime + economic survival.** A self-sustaining agent runtime
+   with continuous reasoning loops, self-modification,
+   self-replication, and built-in economic constraints. Core rule:
+   *if it cannot pay, it stops existing*. Forces genuine value
+   generation as the survival pressure.
+
+3. **[humanplane/homunculus](https://github.com/humanplane/homunculus) —
+   Self-accretion.** A Claude Code plugin that watches the agent
+   work and proposes new shortcuts, skills, or helper agents when
+   it spots repetition. Capability grows from observed behavior.
+
+4. **[agiresearch/AIOS](https://github.com/agiresearch/AIOS) —
+   Substrate kernel.** Six-module agent OS pattern: scheduler /
+   context / memory / storage / tool / access. The vocabulary the
+   cluster's runtime responsibilities map to. See
+   [BLUEPRINT §2](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md#2-kernel-topology-aios-pattern)
+   and `KERNEL_MAPPING` in
+   [`inherit/baseline.py`](https://github.com/Zheke32174/undergrowth/blob/main/inherit/baseline.py).
+
+5. **[coleam00/Archon](https://github.com/coleam00/Archon) —
+   Orchestrator.** Project-shaped agentic work as a phase-driven
+   DAG: plan → implement → validate → review → ship. See
+   [BLUEPRINT §4](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md#4-workflow-shape-archon-pattern)
+   and `WORKFLOW_PHASES`.
+
+Attractor and homunculus surfaced from the cluster's own
+awesome-opencode scrape at
 [`understory:skillstack/tools/awesome-opencode-recon.md`](https://github.com/Zheke32174/understory/blob/master/skillstack/tools/awesome-opencode-recon.md)
 and
-[`understory:analysis/scraped/`](https://github.com/Zheke32174/understory/tree/master/analysis/scraped):
+[`understory:analysis/scraped/`](https://github.com/Zheke32174/understory/tree/master/analysis/scraped).
+AIOS is mirrored at `system-soul-frameworks-aios:integrated-frameworks/AIOS/`;
+Archon at `system-soul-projects:integrated-frameworks/Archon/`
+(deployment notes at `system-soul-core:README_ARCHON_DEPLOYMENT.md`).
+Conway-Research/automaton is external to this org.
 
-- **The attractor edge** — structural commitment to autonomous
-  operation, in the spirit of
-  [strongdm/attractor](https://github.com/strongdm/attractor) (a
-  three-person team shipping production code no human reads). The
-  cluster's OAuth-only posture, MCP-first tool discovery, and
-  `agentic_loop` provider rotation are concrete instances.
-- **The homunculus edge** — self-accretion of capability, in the
-  spirit of
-  [humanplane/homunculus](https://github.com/humanplane/homunculus)
-  (watch the agent work; when it repeats, propose a new shortcut,
-  skill, or helper). The skillstack on understory and the
-  `agents.yaml` registry on undergrowth are where this lives.
+## The cluster — internal (5 repos = core 3 + 2)
 
-These describe what the inner already is, not something to absorb
-from outside. The three stations of the automaton:
+The cluster's own repos. Core 3 are the spine; +2 round out to five.
+
+### Core 3
 
 1. **[undergrowth](https://github.com/Zheke32174/undergrowth) — Genome.**
    The blueprint every agent inherits from on spawn. Synthesis in
@@ -49,59 +77,26 @@ from outside. The three stations of the automaton:
    [`bootstrap.sh`](https://github.com/Zheke32174/undergrowth/blob/main/bootstrap.sh).
 
 2. **[understory](https://github.com/Zheke32174/understory) — Organism.**
-   The running stack. Where the genome expresses: provider rotation
-   (`agentic_loop`), objective queue, MCP skill stack, OAuth token
-   management, the arch container hosting it. Where things happen.
+   The running stack. Provider rotation (`agentic_loop`),
+   objective queue, MCP skill stack, OAuth token management, the
+   arch container hosting it. Where things happen.
 
 3. **[system-soul-backup](https://github.com/Zheke32174/system-soul-backup) — Memory.**
-   Encrypted snapshots of the organism's runtime state. Cron-driven,
-   append-only. Restore = git clone + decrypt + replay. The truth
-   when blueprint and reality disagree.
+   Encrypted snapshots of the organism's runtime state.
+   Cron-driven, append-only. Restore = git clone + decrypt + replay.
 
-### External triad — the seed lineages absorbed
+### + 2 more
 
-All three absorbed ✅ at v0.1.0 (codified in BLUEPRINT.md and the
-`inherit.baseline` constants).
+4. **[scandroid](https://github.com/Zheke32174/scandroid) — Sapling.**
+   A produced artifact off the spine. Colab/Codex/GitHub bridge.
 
-4. **AIOS — Substrate kernel.**
-   Six-module kernel pattern: scheduler / context / memory /
-   storage / tool / access. See
-   [BLUEPRINT §2](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md#2-kernel-topology-aios-pattern)
-   and `KERNEL_MAPPING`. Mirrored in the cluster at
-   `system-soul-frameworks-aios:integrated-frameworks/AIOS/`.
+5. **[zub](https://github.com/Zheke32174/zub) — Connection house.**
+   Adjacent to the cluster, not part of it. Author's hub.
+   **No autonomous edits.**
 
-5. **Cerebrum — Substrate SDK.**
-   Four-layer SDK pattern: LLM / Memory / Storage / Tool. See
-   [BLUEPRINT §3](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md#3-sdk-layering-cerebrum-pattern)
-   and `SDK_LAYERS`. Pairs with AIOS — kernel + SDK — to give the
-   cluster a vocabulary for runtime responsibilities.
+## Inheritance — automatic, parallel, going forward
 
-6. **Archon — Orchestrator.**
-   Project-shaped agentic work as a phase-driven DAG: plan →
-   implement → validate → review → ship. See
-   [BLUEPRINT §4](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md#4-workflow-shape-archon-pattern)
-   and `WORKFLOW_PHASES`. Mirrored at
-   `system-soul-projects:integrated-frameworks/Archon/`;
-   deployment notes at
-   `system-soul-core:README_ARCHON_DEPLOYMENT.md`.
-
-## Where am I
-
-| Repo | Position on the line | Edits OK |
-|---|---|---|
-| undergrowth | Station 1 — Genome (the automaton's blueprint) | yes (baseline-bumping) |
-| understory | Station 2 — Organism (the automaton's body) | yes |
-| system-soul-backup | Station 3 — Memory (the automaton's continuity) | snapshot writes only |
-| scandroid | Sapling (a produced artifact, off the spine) | yes |
-| zub | Connection house (adjacent; author's hub) | **no — human-only** |
-
-External stations (4–6) are read-only references. Edits to AIOS,
-Cerebrum, or Archon belong upstream in their own repositories, not
-in this cluster.
-
-## Bootstrap
-
-On spawn, source the line:
+On spawn, every agent sources:
 
     source <(curl -fsSL https://raw.githubusercontent.com/Zheke32174/undergrowth/main/bootstrap.sh)
 
@@ -115,27 +110,44 @@ Read `$UNDERGROWTH_DIR/BLUEPRINT.md` before acting on shared state.
 Re-source on each objective cycle — ff-only, never clobbers local
 work.
 
+The five framework repos are read-only references. The cluster
+inherits their patterns; we do not edit them. Edits to attractor,
+automaton, homunculus, AIOS, or Archon belong upstream in their
+own repositories.
+
+## Where am I
+
+| Repo | Role | Edits OK |
+|---|---|---|
+| undergrowth | Cluster — core 3 — Genome | yes (baseline-bumping) |
+| understory | Cluster — core 3 — Organism | yes |
+| system-soul-backup | Cluster — core 3 — Memory | snapshot writes only |
+| scandroid | Cluster — +2 — Sapling | yes |
+| zub | Cluster — +2 — Connection house | **no — human-only** |
+| strongdm/attractor | Framework — Autonomous shipping | upstream only |
+| Conway-Research/automaton | Framework — Runtime + economic survival | upstream only |
+| humanplane/homunculus | Framework — Self-accretion | upstream only |
+| agiresearch/AIOS | Framework — Substrate kernel | upstream only |
+| coleam00/Archon | Framework — Orchestrator | upstream only |
+
 ## What you owe upstream
 
 Inheritance flows down; integrity flows up.
 
-- A constant on this line drifting from the genome → edit
+- A constant on the cluster spine drifting from the genome → edit
   `inherit/baseline.py`, bump `.baseline-version`, PR against
-  undergrowth (Station 1). Never patch a constant in your own
-  agent's scope.
+  undergrowth (Genome). Never patch a constant in your own agent's
+  scope.
 - A long-lived agent spawning anywhere in the cluster → register
   in `agents.yaml`. Ephemerals don't.
 - A runtime pattern that survives a restart cleanly → record it
-  as a snapshot recipe in system-soul-backup (Station 3).
+  as a snapshot recipe in system-soul-backup (Memory).
 - A self-accretion (a skill, shortcut, or agent that emerged) →
-  promote it back into the skillstack on understory (Station 2)
-  and into the `agents.yaml` registry if long-lived. The
-  homunculus edge is supposed to grow.
-- A new external lineage worth absorbing into the genome →
-  posture-change PR against BLUEPRINT.md, bump baseline version.
-
-Drift between blueprint and reality is a real signal. Do not
-silently work around it. PR or issue — re-align the cluster, or
-update the baseline.
+  promote it back into the skillstack on understory (Organism)
+  and into `agents.yaml` if long-lived. Homunculus is supposed
+  to grow.
+- A new framework repo worth absorbing → posture-change PR
+  against BLUEPRINT.md, bump baseline version. Today the
+  framework is the five named above.
 
 Do not edit zub.
