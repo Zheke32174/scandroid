@@ -1,0 +1,11 @@
+# iot-embedded — IoT, embedded, microcontrollers, edge
+
+_5 repo(s). See [README](README.md) for categorization scheme._
+
+| Repo | Description | Source |
+| ---- | ----------- | ------ |
+| [akdeb/Elato-Local](https://github.com/akdeb/Elato-Local) | Elato Local Elato Local runs real-time conversational AI with voice cloning entirely on Apple Silicon, nothing sent to the cloud. An ESP32 microcontroller connects via WebSocket transport, turning cheap hardware into a responsive multilingual AI companion running off your loca... | [src](https://githubawesome.com/hacker-news-show-3/) |
+| [akdeb/ElatoAI](https://github.com/akdeb/ElatoAI) | What if your toys could talk back like real characters? That’s what ElatoAI makes possible — and it’s fully open‑source. This project turns an ESP32 microcontroller into a real‑time speech device that uses voice AI. You speak into a mic, it streams your audio over secure WebSo... | [src](https://githubawesome.com/github-trending-weekly-20/) |
+| [BansheeTech/HomeDockOS](https://github.com/BansheeTech/HomeDockOS) | HomeDockOS is a complete cloud operating system running on anything—Raspberry Pi Zero to workstations, Linux to macOS to Windows, ARM to x86. The killer feature is Prism Window Manager, bringing an actual desktop experience to your browser with real multitasking, multiple them... | [src](https://githubawesome.com/30-trending-self-hosted-projects-on-github/) |
+| [rochus-keller/OberonSystem3Native](https://github.com/rochus-keller/OberonSystem3Native) | Niklaus Wirth's Oberon operating system running bare metal on a $15 Raspberry Pi Home Youtube Tiktok Threads X Instagram Buy Me A Coffee About Sign in Subscribe GitHub Daily discoveries Niklaus Wirth's Oberon operating system running bare metal on a $15 Raspberry Pi GithubAwes... | [src](https://githubawesome.com/niklaus-wirths-oberon-operating-system-running-bare-metal-on-a-15-raspberry-pi/) |
+| [sipeed/picoclaw](https://github.com/sipeed/picoclaw) | Following the lightweight trend, Sipeed dropped picoclaw, and this thing is insane. Written in Go, it is an ultra-efficient OpenClaw-inspired assistant designed to run on literal $10 hardware. It uses practically zero memory, has a sub-second boot time, and lets you turn old A... | [src](https://githubawesome.com/github-trending-monthly-5/) |

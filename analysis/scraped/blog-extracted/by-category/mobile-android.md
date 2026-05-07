@@ -1,0 +1,11 @@
+# mobile-android — Android apps & mobile-dev frameworks
+
+_5 repo(s). See [README](README.md) for categorization scheme._
+
+| Repo | Description | Source |
+| ---- | ----------- | ------ |
+| [callstackincubator/agent-device](https://github.com/callstackincubator/agent-device) | agent-device is a CLI for controlling iOS and Android devices programmatically. It lets agents or scripts open apps, tap buttons, type text, scroll, and take screenshots. Uses accessibility APIs to inspect and interact with UI elements.Works with simulators and physical device... | [src](https://githubawesome.com/github-trending-weekly-22/) |
+| [moayuisuda/two-moons](https://github.com/moayuisuda/two-moons) | TwoMoons is a web-based app that makes learning and practicing music theory way easier. Plus, it can be packaged into a mobile app using Capacitor. A Global Piano that’s always available, so you can capture inspiration anytime, anywhere. A Chord Editor that allows you to build... | [src](https://githubawesome.com/github-trending-today-16/) |
+| [RanvirRox/EkaKey-autocorrect-globally](https://github.com/RanvirRox/EkaKey-autocorrect-globally) | EkaKey — the auto-correct for Windows that works system-wide! This floating typing assistant uses Flutter and Win32 C++ Hooks to bring mobile-style autocorrect to any app — from Notepad to your browser, or even your IDE! EkaKey listens to your keystrokes globally, plus a predi... | [src](https://githubawesome.com/github-trending-today-16/) |
+| [Snapchat/Valdi](https://github.com/Snapchat/Valdi) | What if you could write your app’s UI once — in TypeScript — and get true native performance on iOS, Android, and macOS? Meet Valdi, an open-source cross-platform UI framework from Snapchat, built to end the trade-off between developer speed and runtime performance. Unlike Rea... | [src](https://githubawesome.com/november-2025-github-trends-25-projects-you-need-to-know/) |
+| [stukennedy/irgo](https://github.com/stukennedy/irgo) | Irgo is an open-source framework for building cross-platform apps in Go. It uses HTMX/Datastar for UI interactions with server-rendered HTML, keeping the frontend type-safe and simple. Write your app logic in Go once, then compile to native iOS, Android, desktop (via webview),... | [src](https://githubawesome.com/github-trending-today-20/) |

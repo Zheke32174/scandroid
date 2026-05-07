@@ -7,9 +7,12 @@ tree.
 
 - **Canonical source:** [`understory:analysis/scraped/blog-extracted/`](https://github.com/Zheke32174/understory/tree/master/analysis/scraped/blog-extracted)
 - **Generator:** [`understory:scripts/scrape-blog.py`](https://github.com/Zheke32174/understory/blob/master/scripts/scrape-blog.py)
+- **Categorizer:** [`understory:scripts/categorize-blog-extracted.py`](https://github.com/Zheke32174/understory/blob/master/scripts/categorize-blog-extracted.py)
 - **Source attribution:** [`understory:credits/sources/github-awesome-blog.yml`](https://github.com/Zheke32174/understory/blob/master/credits/sources/github-awesome-blog.yml) — *as we use them, if we use them* policy.
 - **Source blog:** [githubawesome.com](https://githubawesome.com/) (companion to the github-trending-today YouTube channel).
-- **Count:** 1,835 distinct repos across 37 alphabetical shards.
+- **Count:** 1,835 distinct repos across 37 alphabetical shards + 39 by-category shards.
+- **Freshness:** see [`freshness-report.md`](freshness-report.md) (~94% alive at last sweep).
+- **Session handoff:** [`understory:home-agents/2026-05-07-session-handoff.md`](https://github.com/Zheke32174/understory/blob/master/home-agents/2026-05-07-session-handoff.md) — entry point for the next session.
 - **Last refresh:** 2026-05-07.
 
 To update this mirror, re-run the generator in understory (it produces all
