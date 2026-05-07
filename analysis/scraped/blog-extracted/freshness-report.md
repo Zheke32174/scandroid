@@ -1,6 +1,6 @@
 # blog-extracted — freshness report
 
-_Generated: 2026-05-07T20:01:30Z_
+_Generated: 2026-05-07T20:12:16Z_
 
 HEAD-request sweep against `https://github.com/<slug>` for each of 1835 surfaced repos.
 
@@ -8,10 +8,9 @@ HEAD-request sweep against `https://github.com/<slug>` for each of 1835 surfaced
 
 | Status | Bucket | Count | Share |
 | ------ | ------ | ----: | ----: |
-| alive | | 1338 | 72.9% |
-| rate-limited (incomplete) | | 373 | 20.3% |
-| moved | | 107 | 5.8% |
-| gone | | 16 | 0.9% |
+| alive | | 1682 | 91.7% |
+| moved | | 133 | 7.2% |
+| gone | | 19 | 1.0% |
 | legal-removed | | 1 | 0.1% |
 
 ## Dead repos (404 / 451)
@@ -39,8 +38,11 @@ one of these, find a fork or alternative.
 | [rodolfboctor/mcp-scan](https://github.com/rodolfboctor/mcp-scan) | 404 |
 | [SecurityCrux/secrux](https://github.com/SecurityCrux/secrux) | 404 |
 | [setls/HacxGPT](https://github.com/setls/HacxGPT) | 404 |
+| [TheAgentContextLab/OneContext](https://github.com/TheAgentContextLab/OneContext) | 404 |
+| [vishkx/gitstory](https://github.com/vishkx/gitstory) | 404 |
+| [zggf-zggf/openviktor](https://github.com/zggf-zggf/openviktor) | 404 |
 
-## Moved repos (301) — 107 total
+## Moved repos (301) — 133 total
 
 These slugs redirect to a new location. GitHub's redirect handles
 navigation; the surfaced descriptions still apply. **At adoption
@@ -155,6 +157,32 @@ time, resolve to the new slug** so subsequent commits don't drift.
 | `schoblaska/jargon` | `jargon-io/jargon` |
 | `secluso/secluso` | `secluso/core` |
 | `shaankhosla/repeat` | `shaankhosla/repeater` |
+| `sseanliu/VisionClaw` | `Intent-Lab/VisionClaw` |
+| `sst/opencode` | `anomalyco/opencode` |
+| `steipete/clawdis` | `openclaw/openclaw` |
+| `steipete/discrawl` | `openclaw/discrawl` |
+| `steipete/gogcli` | `openclaw/gogcli` |
+| `steipete/imsg` | `openclaw/imsg` |
+| `steipete/warelay` | `openclaw/openclaw` |
+| `steveiliop56/tinyauth` | `tinyauthapp/tinyauth` |
+| `steveyegge/beads` | `gastownhall/beads` |
+| `steveyegge/gastown` | `gastownhall/gastown` |
+| `surge-downloader/surge` | `SurgeDM/Surge` |
+| `tercumantanumut/seline` | `tercumantanumut/selene` |
+| `The-Vibe-Company/claude-code-controller` | `The-Vibe-Company/companion` |
+| `TinyAGI/tinyclaw` | `TinyAGI/tinyagi` |
+| `tldev/posturr` | `tldev/dorso` |
+| `TN666/batear` | `batear-io/batear` |
+| `tonyyont/peon-ping` | `PeonPing/peon-ping` |
+| `True3DLabs/WindowMode` | `splatsdotcom/WindowMode` |
+| `tw93/claude-health` | `tw93/Waza` |
+| `TyCoding/langchat-slides` | `LangChat/langchat-slides` |
+| `vercel-labs/add-skill` | `vercel-labs/skills` |
+| `vkehfdl1/slides-grab` | `NomaDamas/slides-grab` |
+| `webadderall/Recordly` | `webadderallorg/Recordly` |
+| `williamofai/c-from-scratch` | `SpeyTech/c-from-scratch` |
+| `World-Open-Graph/br-acc` | `brunoclz/br-acc` |
+| `z-libs/Zen-C` | `zenc-lang/zenc` |
 
 ## Source data
 
