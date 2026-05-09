@@ -34,6 +34,25 @@ Colab ↔ Codex ↔ GitHub from a single notebook. It is a self-
 contained example you can run without touching the rest of the
 cluster.
 
+## Public surface of the suite import contract
+
+The cluster's Android suite (`passgen`, `aegis`) accepts user-data
+imports from a fixed set of external file formats. The contract
+lives on the spine in `undergrowth/inherit/baseline.py` as
+`SUITE_IMPORT_FORMATS`, and is mirrored here so external readers
+see what the apps will accept without operator access. Schemas are
+stable; adding a format forces a baseline-version bump in the
+private spine.
+
+| App | Schema | Source |
+|---|---|---|
+| passgen | `google_passwords_csv` | Google Password Manager export |
+| passgen | `proton_pass_json` | Proton Pass — JSON, unencrypted |
+| passgen | `proton_pass_csv` | Proton Pass — CSV |
+| aegis | `otpauth_migration_uris` | Plain text file of `otpauth-migration://` URIs |
+| aegis | `proton_authenticator_json` | Proton Authenticator backup |
+| aegis | `generic_otp_json` | Third-party flat OTP JSON dumps |
+
 ## What requires operator access
 
 The operator-side overlay — which 4 of 16 catalogued LLM providers
