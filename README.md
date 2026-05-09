@@ -7,6 +7,24 @@ Part of a 5-repo cluster — see [CLUSTER.md](CLUSTER.md) for the
 **sapling** — an artifact produced by the understory trunk that
 demonstrates Colab ↔ Codex ↔ GitHub bridge coordination.
 
+## Public bridge
+
+scandroid is the only public cluster repo. The other 4 cluster
+repos (undergrowth, understory, system-soul-backup, zub) are
+private. scandroid is deliberately public so unauthenticated
+agents and readers can:
+
+- See the cluster's topology ([CLUSTER.md](CLUSTER.md))
+- Discover what the cluster is and how it fits together
+- Read scandroid's own bridge code as a self-contained example
+- Find pointers to the public framework repos the cluster inherits from
+
+The full operational documentation (full `INHERIT.md`,
+`BLUEPRINT.md`, `inherit/baseline.py`, `deploy/`, agent registry,
+baseline pin) lives in the private `undergrowth` repo. scandroid's
+[`INHERIT.md`](INHERIT.md) here is a redacted public stub pointing
+there.
+
 ## Contents
 - `scandroid.ipynb`: Notebook with ready-to-run cells for Colab, Codex, and GitHub connectivity.
 - `integrations.py`: Lightweight helpers for mounting Google Drive in Colab, calling OpenAI models, and retrieving GitHub user data.
