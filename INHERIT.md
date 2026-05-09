@@ -62,7 +62,8 @@ Plus the **dependency git repos and onward** — the transitive
 submodule graph reachable from each of the six. Pulled
 automatically by the deploy script's `--recurse-submodules`
 behavior. Per-framework setup runs once per machine via
-`deploy/setup-frameworks.sh` (idempotent, marker-file gated).
+[`undergrowth:deploy/setup-frameworks.sh`](https://github.com/Zheke32174/undergrowth/blob/main/deploy/setup-frameworks.sh)
+(idempotent, marker-file gated).
 
 Attractor and homunculus surfaced from the cluster's own
 awesome-opencode scrape (next section). AIOS, Cerebrum, and
