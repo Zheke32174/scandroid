@@ -61,7 +61,8 @@ along on first clone, refreshed with `submodule update --init
 Plus the **dependency git repos and onward** — the transitive
 submodule graph reachable from each of the six. Pulled
 automatically by the deploy script's `--recurse-submodules`
-behavior; no per-framework setup logic.
+behavior. Per-framework setup runs once per machine via
+`deploy/setup-frameworks.sh` (idempotent, marker-file gated).
 
 Attractor and homunculus surfaced from the cluster's own
 awesome-opencode scrape (next section). AIOS, Cerebrum, and
@@ -93,15 +94,17 @@ five. **Core 3, 2 more, then our five.**
    [BLUEPRINT.md](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md);
    programmatic baseline in
    [`inherit/baseline.py`](https://github.com/Zheke32174/undergrowth/blob/main/inherit/baseline.py)
-   (`PROVIDERS`, `ROTATION_ORDER`, `KERNEL_MAPPING`, `SDK_LAYERS`,
-   `WORKFLOW_PHASES`); long-lived agent registry in
+   (`FRAMEWORKS`, `PROVIDERS`, `ROTATION_ORDER`, `KERNEL_MAPPING`,
+   `SDK_LAYERS`, `WORKFLOW_PHASES`); long-lived agent registry in
    [`agents.yaml`](https://github.com/Zheke32174/undergrowth/blob/main/agents.yaml);
    version pin in
    [`.baseline-version`](https://github.com/Zheke32174/undergrowth/blob/main/.baseline-version);
    spawn entry in
    [`bootstrap.sh`](https://github.com/Zheke32174/undergrowth/blob/main/bootstrap.sh);
    universal deploy at
-   [`deploy/`](https://github.com/Zheke32174/undergrowth/blob/main/deploy/README.md).
+   [`deploy/`](https://github.com/Zheke32174/undergrowth/blob/main/deploy/README.md);
+   branching convention in
+   [`BRANCHES.md`](https://github.com/Zheke32174/undergrowth/blob/main/BRANCHES.md).
 
 2. **[understory](https://github.com/Zheke32174/understory) — Organism.**
    The running stack. Provider rotation (`agentic_loop`),
@@ -133,13 +136,21 @@ or, when the local cache exists:
     source $HOME/.undergrowth/bootstrap.sh
 
 `bootstrap.sh` clones undergrowth itself, exports baseline env
-vars, then sources `deploy/deploy.sh` which clones the **other 10
-top-level repos** (6 framework + 4 other cluster) in parallel with
-`--recurse-submodules`, sets per-repo `*_DIR` env vars
-(ATTRACTOR_DIR, ARCHON_DIR, AUTOMATON_DIR, HOMUNCULUS_DIR,
-AIOS_DIR, CEREBRUM_DIR, UNDERSTORY_DIR, SYSTEM_SOUL_BACKUP_DIR,
-SCANDROID_DIR, ZUB_DIR), and sets `DEPLOY_OK=1` only when all 11
-resolve.
+vars, then sources `deploy/deploy.sh` which clones the **other
+11 top-level repos** in parallel with `--recurse-submodules`:
+
+- **6 public framework repos** (the substrate the cluster
+  bolsters onto): attractor, archon, automaton, homunculus, AIOS,
+  Cerebrum.
+- **1 framework dep** (Archon's Postgres+auth backend): Supabase.
+- **4 other cluster repos** (operator-side, private):
+  understory, system-soul-backup, scandroid, zub.
+
+It exports per-repo `*_DIR` env vars (ATTRACTOR_DIR, ARCHON_DIR,
+AUTOMATON_DIR, HOMUNCULUS_DIR, AIOS_DIR, CEREBRUM_DIR,
+SUPABASE_DIR, UNDERSTORY_DIR, SYSTEM_SOUL_BACKUP_DIR,
+SCANDROID_DIR, ZUB_DIR), and sets `DEPLOY_OK=1` only when all 12
+resolve (the 11 above + undergrowth itself).
 
 Re-source on each objective cycle — ff-only, never clobbers local
 work; submodules refresh recursively; per-shell guard makes
@@ -165,6 +176,7 @@ in their own repositories.
 | humanplane/homunculus | Framework — Self-accretion | upstream only |
 | agiresearch/AIOS | Framework — Substrate kernel | upstream only |
 | agiresearch/Cerebrum | Framework — Substrate SDK | upstream only |
+| supabase/supabase | Framework dep — Archon's Postgres+auth backend | upstream only |
 | (transitive submodules) | Framework deps — inherited automatically | upstream only |
 
 ## What you owe upstream
@@ -183,10 +195,11 @@ Inheritance flows down; integrity flows up.
   promote it back into the skillstack on understory (Organism)
   and into `agents.yaml` if long-lived. Homunculus is supposed
   to grow.
-- A new framework repo worth absorbing → add it to
-  `deploy/deploy-framework.sh`, add the `*_DIR` to
-  `deploy/verify.sh`, posture-change PR against BLUEPRINT.md,
-  bump baseline version. Today the framework is the six named
-  above plus their transitive submodule graph.
+- A new framework repo worth absorbing → add an entry to
+  `inherit/baseline.py` `FRAMEWORKS` (the source of truth for the
+  framework list), mirror its URL in `deploy/deploy-framework.sh`,
+  add the `*_DIR` to `deploy/verify.sh`, posture-change PR against
+  BLUEPRINT.md, bump baseline version. Today the framework is the
+  six named above plus their transitive submodule graph.
 
 Do not edit zub.

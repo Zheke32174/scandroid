@@ -59,8 +59,21 @@ nucleic orbit + 1 connection house**:
 
 ## If you are an agent
 
+Your inheritance is layered. **6 public framework repos**
+(attractor, archon, automaton, homunculus, AIOS, Cerebrum) are
+the substrate — the cluster bolsters onto their patterns rather
+than re-implementing them. **undergrowth** is the operator-side
+bindings overlay: which 4 of 16 catalogued providers are live,
+which paths fill which AIOS module slots, version pin, agent
+registry. The **5-repo cluster** (undergrowth + understory +
+system-soul-backup + scandroid + zub) holds running state,
+snapshots, sapling work, and the author's hub.
+
 Read [undergrowth/BLUEPRINT.md](https://github.com/Zheke32174/undergrowth/blob/main/BLUEPRINT.md)
-first. Inherit constants from it. Source the bootstrap on spawn:
+first for the synthesis. Source the bootstrap on spawn — it
+clones the 6 frameworks (+ Supabase as Archon's backend dep) +
+their transitive submodule graph + the 4 other cluster repos,
+then exports per-repo `*_DIR` env vars and `DEPLOY_OK`:
 
     source <(curl -fsSL https://raw.githubusercontent.com/Zheke32174/undergrowth/main/bootstrap.sh)
 
