@@ -5,8 +5,19 @@ start, stop, and delete Codespaces without a local ``gh`` install. ``exec``
 is provided as an opt-in convenience that shells out to ``gh codespace ssh``
 when available; the REST API itself does not expose remote command execution.
 
-Requires a ``GITHUB_TOKEN`` (or ``GH_TOKEN``) with the ``codespace`` scope.
-Pass ``token=`` explicitly if you do not want to rely on env vars.
+Authentication, in order of resolution:
+
+1. Explicit ``token=`` parameter on each call.
+2. ``GITHUB_TOKEN`` or ``GH_TOKEN`` env var (PAT-style, codespace scope).
+3. Stored OAuth token from a prior ``authorize()`` device-flow run
+   (see ``scandroid.oauth``). The user runs ``authorize()`` once on
+   their phone / laptop to grant the agent VM long-lived access
+   without ever pasting a PAT.
+
+The third path is the headless-agent-friendly default. PAT-based
+auth still works for cases where a long-lived service token is more
+convenient, but new deployments should prefer device-flow OAuth so
+authorization is bound to the user's GitHub account directly.
 
 References:
     https://docs.github.com/en/rest/codespaces/codespaces
@@ -18,6 +29,8 @@ import shutil
 import subprocess
 from typing import Any, Dict, List, Optional
 
+from . import oauth as _oauth
+
 API = "https://api.github.com"
 __all__ = [
     "list_codespaces",
@@ -27,20 +40,84 @@ __all__ = [
     "stop_codespace",
     "delete_codespace",
     "exec_in_codespace",
+    "authorize",
+    "deauthorize",
 ]
 
 
+def _resolve_token(token: Optional[str]) -> Optional[str]:
+    """Walk the auth-source chain and return the first hit.
+
+    Doesn't raise on miss — callers compose error messages with
+    context-appropriate hints (PAT vs device-flow). Public so the
+    callers can also surface "we'd be using <source>" if they want.
+    """
+    if token:
+        return token
+    env = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    if env:
+        return env
+    stored = _oauth.load()
+    if stored and stored.get("access_token"):
+        return stored["access_token"]
+    return None
+
+
 def _headers(token: Optional[str]) -> Dict[str, str]:
-    tok = token or os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    tok = _resolve_token(token)
     if not tok:
         raise ValueError(
-            "Provide a GitHub token (codespace scope) or set GITHUB_TOKEN/GH_TOKEN."
+            "No GitHub credentials available. Pick one:\n"
+            "  - Pass token= on the call.\n"
+            "  - Set GITHUB_TOKEN or GH_TOKEN in env (codespace + repo scope).\n"
+            "  - Run scandroid.codespaces.authorize() once to grant access "
+            "via OAuth device flow (no PAT needed)."
         )
     return {
         "Authorization": f"Bearer {tok}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
+
+
+def authorize(
+    client_id: Optional[str] = None,
+    scope: Optional[str] = None,
+    on_user_code: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Walk the GitHub OAuth device flow + persist the resulting token.
+
+    One-time setup. The agent VM prints a URL + 6-digit code; the user
+    opens the URL on their phone / laptop, types the code, hits
+    Approve. The agent receives a long-lived access token and stores
+    it at ``~/.config/scandroid/github_oauth.json`` (mode 0600).
+
+    Subsequent calls to any function in this module pick up the stored
+    token automatically — no env-var dance, no PAT paste.
+
+    Pass ``client_id`` if you've registered your own OAuth App
+    (recommended for production agents); default is the GitHub CLI's
+    public client_id which lets the user authorize the same way they
+    would with ``gh auth login``.
+
+    ``on_user_code(code, uri, expires_in)`` is invoked with the
+    user-facing prompt instead of ``print`` if provided. Useful for
+    routing the prompt to an ntfy push, the agent 2FA gate, etc.
+
+    Returns the token response dict; raises ``RuntimeError`` if the
+    user denies, the device code expires, or the agent is offline.
+    """
+    return _oauth.authorize(client_id=client_id, scope=scope, on_user_code=on_user_code)
+
+
+def deauthorize() -> bool:
+    """Delete the stored OAuth token. Returns True if one was deleted.
+
+    GitHub-side revocation is a separate step: visit
+    https://github.com/settings/applications and revoke the OAuth app
+    grant. This call only removes the local on-disk token.
+    """
+    return _oauth.clear()
 
 
 def _requests():

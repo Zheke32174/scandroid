@@ -15,6 +15,12 @@ Submodules:
   ``colab_endpoint.json`` schema the cluster speaks.
 - ``scandroid.bridge``: high-level discover/generate.
 - ``scandroid.codespaces``: GitHub Codespaces REST API helpers.
+  Auth resolves through explicit token > GITHUB_TOKEN env > stored
+  OAuth device-flow token.
+- ``scandroid.oauth``: GitHub OAuth device-flow helpers. Run
+  ``scandroid.oauth.authorize()`` once on the agent VM; user
+  approves on their phone / laptop; the agent gets a long-lived
+  access token without a PAT.
 - ``scandroid.approval``: agent action 2FA gate. Posts approval
   requests to a Cloudflare Worker; user resolves on phone via push
   + aegis TOTP. See worker/README.md for deploy.

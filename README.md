@@ -134,9 +134,49 @@ backing compute without a local `gh` install:
 from scandroid.codespaces import (
     list_codespaces, create_codespace, start_codespace,
     stop_codespace, delete_codespace, exec_in_codespace,
+    authorize, deauthorize,
 )
-# Requires GITHUB_TOKEN with the `codespace` scope.
 ```
+
+### Auth (one-time, no PAT needed)
+
+For headless agents — Claude VMs, Codespaces, any remote — use OAuth device
+flow:
+
+```python
+from scandroid.codespaces import authorize
+authorize()
+# Prints:
+#   Open: https://github.com/login/device
+#   Code: ABCD-1234
+#   TTL : 900s
+#   Waiting for authorization…
+```
+
+You open the URL on your phone or laptop, type the code, click Approve.
+The agent VM receives a long-lived access token and stores it at
+`~/.config/scandroid/github_oauth.json` (mode 0600). Subsequent
+`list_codespaces()` etc. calls pick the token up automatically — no env
+vars, no PAT paste.
+
+The default OAuth client_id is the GitHub CLI's published one
+(`178c6fc778ccc68e1d6a`), so the GitHub authorization page shows "GitHub
+CLI" as the requesting app. If you want a distinct app identity, register
+your own at https://github.com/settings/developers (Device Flow checked)
+and pass `client_id=` to `authorize()` or set `$SCANDROID_GITHUB_CLIENT_ID`.
+
+To revoke locally: `deauthorize()`. To revoke on GitHub's side: visit
+https://github.com/settings/applications.
+
+### Auth fallback chain
+
+`scandroid.codespaces` resolves credentials in this order:
+1. Explicit `token=` param.
+2. `GITHUB_TOKEN` or `GH_TOKEN` env var (PAT-style).
+3. Stored OAuth token from a prior `authorize()` run.
+
+PAT-style auth still works for cases where a long-lived service token is
+more convenient, but new agent deployments should prefer device-flow OAuth.
 `exec_in_codespace` shells out to `gh codespace ssh` and is the only function
 that requires the `gh` CLI on the calling VM.
 
