@@ -32,9 +32,11 @@ fi
 
 # Install the scandroid namespace so `from scandroid import …` works in any
 # python/ipython invoked inside the Codespace. Mirrors the SessionStart hook
-# Claude Code uses on local + remote sessions.
+# Claude Code uses on local + remote sessions. Non-editable to avoid the
+# pip-editable meta-finder being shadowed when cwd contains a sibling
+# directory named `scandroid`.
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-python3 -m pip install --user -e "$REPO_ROOT" \
-  || python3 -m pip install --user --break-system-packages -e "$REPO_ROOT"
+python3 -m pip install --user "$REPO_ROOT" \
+  || python3 -m pip install --user --break-system-packages "$REPO_ROOT"
 
 echo "Persistent Codespace environment is ready!"

@@ -26,24 +26,45 @@ baseline pin) lives in the private `undergrowth` repo. scandroid's
 there.
 
 ## Contents
-- `scandroid/`: Python package — re-exports the helpers from `integrations.py` and adds `scandroid.codespaces` for GitHub Codespaces REST control. Pip-installable.
-- `scandroid.ipynb`: Blank-slate notebook scaffold (parameters cell + namespace check). Runnable headlessly via papermill.
-- `integrations.py`: Original helpers for mounting Google Drive in Colab, calling OpenAI models, and retrieving GitHub user data. Re-exported under `scandroid`.
+- `scandroid.ipynb`: Colab GPU bridge notebook. **You** open it in Colab, it starts Ollama + a tunnel, publishes the endpoint to a private Gist. Public-friendly mirror of the cluster's `gigadeath_gpu_node` pattern.
+- `scandroid/`: Pip-installable package.
+  - `scandroid.bridge` — agent-side `discover` / `generate` helpers.
+  - `scandroid.gist` — Gist publish/fetch using the `colab_endpoint.json` schema the cluster speaks.
+  - `scandroid.codespaces` — GitHub Codespaces REST control.
+  - Re-exports `integrations.py` helpers (Drive mount, OpenAI completions, runtime context).
+- `integrations.py`: Original Colab/Codex/GitHub helpers. Re-exported under `scandroid`.
 - `.claude/hooks/session-start.sh`: SessionStart hook that pip-installs the package on every Claude Code session (local + remote).
 - `.devcontainer/setup.sh`: Codespaces post-create that does the same install.
 - `bridge_setup.md`: Notes on capturing filesystem snapshots (e.g., `groot.html`).
 
-## Quick start
-1. Install the package (editable). Pulls `openai` + `requests` and exposes the
-   `scandroid` namespace anywhere on `sys.path`:
+## Why this exists
+
+To offload CPU/RAM/GPU-heavy work from a small agent VM to a stronger model
+running on Colab's free GPU — without violating Google's ToS. The user opens
+the notebook (legitimate), the notebook self-publishes its tunnel URL to a
+private Gist, agents read the Gist and connect to the tunnel. No automated
+Google login, no UI scraping, no scope abuse. Aligned with this cluster's
+[`AI-PARTICIPANTS-TOS-RULE.md`](https://github.com/Zheke32174/understory/blob/main/AI-PARTICIPANTS-TOS-RULE.md).
+
+## Quick start (agent side)
+1. Install the package:
    ```bash
    pip install --user -e .
-   # optional extras:
+   # optional:
    pip install --user -e .[papermill]   # headless notebook execution
    ```
-2. Open the notebook directly in Colab using the badge at the top of `scandroid.ipynb` or via [this link](https://colab.research.google.com/github/Zheke32174/scandroid/blob/main/scandroid.ipynb).
+2. Open `scandroid.ipynb` in Colab on a T4 GPU runtime. Add `GITHUB_TOKEN`
+   (gist scope) and optionally `NGROK_TOKEN` to Colab Secrets. Run all cells.
+   The notebook prints a `GIST_ID` on first run.
+3. From any agent VM, with `GITHUB_TOKEN` in env:
+   ```python
+   from scandroid import generate
+   print(generate("Say hello.", gist_id="<gist-id-from-step-2>"))
+   ```
+   Or set `SCANDROID_GIST_ID` once and drop the `gist_id=` argument.
 
 ## Agent access paths
+
 The `scandroid` namespace is preloaded automatically in three environments so
 any agent — local CLI or remote VM — can `from scandroid import …` without
 extra setup:
@@ -55,15 +76,27 @@ extra setup:
   `postCreateCommand`.
 - **Anywhere else**: `pip install -e .` from a fresh checkout.
 
-## Headless notebook runs (optional)
-```bash
-papermill scandroid.ipynb out.ipynb -p label demo
+## Bridge protocol
+
+`scandroid.ipynb` and `scandroid.bridge` interoperate with the cluster's
+`colab-watcher` daemon. The contract is a private Gist containing one file,
+`colab_endpoint.json`:
+
+```json
+{
+  "url":    "https://abc.trycloudflare.com",
+  "model":  "qwen2.5:14b",
+  "ts":     "2026-05-09T15:30:00Z",
+  "tunnel": "ngrok"
+}
 ```
-The notebook has a `parameters`-tagged cell (`label = "default"`) that
-papermill overwrites at runtime. The default scaffold prints
-`runtime_context()` so a successful execution doubles as a smoke test.
+
+The notebook updates this file whenever the tunnel URL changes (e.g. ngrok
+session renewal). Any consumer — `scandroid.bridge.discover()`,
+`colab-watcher`, a hand-rolled curl — picks up the new URL on next read.
 
 ## Codespaces from a VM (`scandroid.codespaces`)
+
 Wraps the GitHub Codespaces REST API so an agent can drive a Codespace as
 backing compute without a local `gh` install:
 
@@ -75,25 +108,41 @@ from scandroid.codespaces import (
 # Requires GITHUB_TOKEN with the `codespace` scope.
 ```
 `exec_in_codespace` shells out to `gh codespace ssh` and is the only function
-that requires the `gh` CLI on the calling VM (the REST API has no direct
-remote-exec endpoint).
-3. Add your secrets as environment variables inside Colab or your local shell. In ephemeral environments (e.g., Colab), prefer in-memory variables so nothing touches local storage:
-   ```bash
-   export OPENAI_API_KEY="sk-..."
-   export GITHUB_TOKEN="ghp_..."  # or GH_TOKEN
-   ```
-   Or inside a notebook:
-   ```python
-   import getpass
-   from integrations import set_runtime_secrets
+that requires the `gh` CLI on the calling VM.
 
-   set_runtime_secrets(
-       openai_api_key=getpass.getpass("OPENAI_API_KEY: "),
-       github_token=getpass.getpass("GITHUB_TOKEN: "),
-   )
-   ```
+## Headless notebook runs
 
-## Using the helpers
+```bash
+papermill scandroid.ipynb out.ipynb -p KEEPALIVE False
+```
+The notebook has a `parameters`-tagged cell so papermill can override `MODEL`,
+`KEEPALIVE`, etc. Pass `KEEPALIVE=False` for smoke tests so cell 8 doesn't
+block forever.
+
+## Secrets
+
+Set these as environment variables on the agent VM (the SessionStart hook
+reads them; the notebook reads them from Colab Secrets):
+
+```bash
+export GITHUB_TOKEN="ghp_..."        # gist scope (and `codespace` if using scandroid.codespaces)
+export SCANDROID_GIST_ID="..."       # convenient default for scandroid.bridge.discover()
+export OPENAI_API_KEY="sk-..."       # only if using run_codex_completion
+```
+
+Inside a notebook you can also use the in-memory pattern (nothing touches disk):
+
+```python
+import getpass
+from scandroid import set_runtime_secrets
+
+set_runtime_secrets(
+    openai_api_key=getpass.getpass("OPENAI_API_KEY: "),
+    github_token=getpass.getpass("GITHUB_TOKEN: "),
+)
+```
+
+## Other helpers in `integrations` (re-exported under `scandroid`)
 The `integrations.py` module exposes convenience functions:
 - `mount_colab_drive(force_remount=False)`: Mounts your Google Drive at `/content/drive` inside Colab.
 - `run_codex_completion(prompt, model="gpt-4o-mini", api_key=None, **kwargs)`: Sends a prompt to an OpenAI chat-completions model for code generation or assistance.

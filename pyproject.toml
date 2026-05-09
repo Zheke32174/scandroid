@@ -15,7 +15,6 @@ dependencies = [
 
 [project.optional-dependencies]
 papermill = ["papermill", "ipykernel"]
-drive = ["google-api-python-client", "google-auth", "google-auth-httplib2"]
 
 [tool.setuptools]
 packages = ["scandroid"]

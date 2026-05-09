@@ -12,12 +12,20 @@ set -euo pipefail
 
 cd "${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 
-# Editable user install: pulls in runtime deps (openai, requests) and exposes
-# scandroid + integrations on sys.path under ~/.local. Falls back to
-# --break-system-packages only if a PEP 668 environment also blocks --user.
-if ! python3 -m pip install --quiet --user -e . 2>/tmp/scandroid-pip.err; then
+# Non-editable user install: pulls in runtime deps (openai, requests) and
+# copies scandroid + integrations into ~/.local site-packages. Editable mode
+# (-e) is intentionally NOT used here because pip's editable meta-path finder
+# runs *after* PathFinder, so when a sibling directory in the agent's cwd
+# shares the package name (e.g. cwd=/home/user with /home/user/scandroid/),
+# Python silently builds a namespace package and shadows the real install.
+# Plain install copies the package into site-packages, where PathFinder finds
+# it via a normal sys.path entry and beats the cwd shadowing.
+#
+# Developers wanting hot-reload should run `pip install --user -e .` from
+# inside the repo directory themselves; agent sessions get the safer install.
+if ! python3 -m pip install --quiet --user . 2>/tmp/scandroid-pip.err; then
   if grep -q "externally-managed-environment" /tmp/scandroid-pip.err; then
-    python3 -m pip install --quiet --user --break-system-packages -e .
+    python3 -m pip install --quiet --user --break-system-packages .
   else
     cat /tmp/scandroid-pip.err >&2
     exit 1
