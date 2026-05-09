@@ -21,7 +21,7 @@ from typing import Any, Dict, Optional
 
 from .gist import fetch_endpoint
 
-__all__ = ["discover", "generate"]
+__all__ = ["discover", "generate", "healthcheck"]
 
 
 def discover(
@@ -83,3 +83,82 @@ def generate(
     if stream:
         return r.text
     return r.json().get("response", "")
+
+
+def healthcheck(
+    gist_id: Optional[str] = None,
+    *,
+    token: Optional[str] = None,
+    timeout: int = 30,
+) -> Dict[str, Any]:
+    """End-to-end probe: gist lookup + endpoint reachability + model presence.
+
+    For an agent VM that wants to know "can I offload to Colab right now?"
+    in one call. Returns a dict shaped like::
+
+        {
+            "ok": bool,            # True only when every check passed
+            "gist_ok": bool,       # gist read returned a valid endpoint
+            "tunnel_ok": bool,     # GET {url}/api/tags returned 200
+            "model_ok": bool,      # the published model is in Ollama's list
+            "endpoint": {...},     # the gist payload (or None on failure)
+            "model": "qwen2.5:14b",
+            "tags": ["model:tag", ...],   # what Ollama is actually serving
+            "elapsed_ms": int,
+            "error": str | None,
+        }
+
+    No exceptions on partial failure — caller branches on ``ok``. This is
+    the pattern an objective-runner uses to decide "rotate to Colab" vs
+    "fall back to local Ollama / Gemini / OpenAI" without try/except spam.
+    """
+    try:
+        import requests
+    except ImportError as e:
+        raise RuntimeError(
+            "scandroid.bridge.healthcheck requires 'requests'."
+        ) from e
+
+    import time as _time
+    started = _time.monotonic()
+    out: Dict[str, Any] = {
+        "ok": False,
+        "gist_ok": False,
+        "tunnel_ok": False,
+        "model_ok": False,
+        "endpoint": None,
+        "model": None,
+        "tags": [],
+        "elapsed_ms": 0,
+        "error": None,
+    }
+
+    try:
+        ep = discover(gist_id, token=token)
+        out["endpoint"] = ep
+        out["model"] = ep.get("model")
+        out["gist_ok"] = bool(ep.get("url") and ep.get("model"))
+    except Exception as e:
+        out["error"] = f"gist: {e.__class__.__name__}: {e}"
+        out["elapsed_ms"] = int((_time.monotonic() - started) * 1000)
+        return out
+
+    try:
+        url = ep["url"].rstrip("/") + "/api/tags"
+        r = requests.get(url, timeout=timeout)
+        r.raise_for_status()
+        body = r.json()
+        # Ollama /api/tags returns {"models": [{"name": "qwen2.5:14b", ...}, ...]}
+        names = [m.get("name", "") for m in body.get("models", []) if isinstance(m, dict)]
+        out["tags"] = names
+        out["tunnel_ok"] = True
+        if out["model"] and out["model"] in names:
+            out["model_ok"] = True
+    except Exception as e:
+        out["error"] = f"tunnel: {e.__class__.__name__}: {e}"
+        out["elapsed_ms"] = int((_time.monotonic() - started) * 1000)
+        return out
+
+    out["ok"] = out["gist_ok"] and out["tunnel_ok"] and out["model_ok"]
+    out["elapsed_ms"] = int((_time.monotonic() - started) * 1000)
+    return out

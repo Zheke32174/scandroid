@@ -95,6 +95,26 @@ The notebook updates this file whenever the tunnel URL changes (e.g. ngrok
 session renewal). Any consumer — `scandroid.bridge.discover()`,
 `colab-watcher`, a hand-rolled curl — picks up the new URL on next read.
 
+## Pre-flight check (`scandroid.healthcheck`)
+
+End-to-end probe an agent can run before deciding to offload to Colab:
+
+```python
+from scandroid import healthcheck
+h = healthcheck(gist_id="<your-gist-id>")
+if h["ok"]:
+    # Gist resolves, tunnel responds, the published model is loaded.
+    use_colab(h["endpoint"]["url"], h["model"])
+else:
+    # h["error"] tells you which check failed.
+    fall_back_to_local()
+```
+
+Returns the full state dict (`gist_ok`, `tunnel_ok`, `model_ok`,
+`endpoint`, `tags`, `elapsed_ms`, `error`) so an objective-runner can
+make the rotate-to-Colab vs fall-back-to-Gemini/OpenAI decision in
+one call without try/except spam.
+
 ## Agent action 2FA gate (`scandroid.approval`)
 
 Agents posting requests for the user to approve a high-stakes action

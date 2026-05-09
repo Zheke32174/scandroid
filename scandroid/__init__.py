@@ -34,7 +34,7 @@ from integrations import (  # noqa: F401
     runtime_context,
 )
 
-from .bridge import discover, generate  # noqa: F401
+from .bridge import discover, generate, healthcheck  # noqa: F401
 
 __all__ = [
     "mount_colab_drive",
@@ -45,4 +45,5 @@ __all__ = [
     "runtime_context",
     "discover",
     "generate",
+    "healthcheck",
 ]
