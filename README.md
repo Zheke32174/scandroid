@@ -200,6 +200,28 @@ more convenient, but new agent deployments should prefer device-flow OAuth.
 `exec_in_codespace` shells out to `gh codespace ssh` and is the only function
 that requires the `gh` CLI on the calling VM.
 
+### Codespace as compute (`Session`)
+
+For agents that want to offload work to a Codespace without managing the
+start/stop lifecycle by hand:
+
+```python
+from scandroid.codespaces import Session
+
+with Session(repository="zheke32174/scandroid") as cs:
+    r = cs.run("python3 -c 'import torch; print(torch.cuda.is_available())'")
+    print(r.stdout)
+# On context exit: stops the Codespace by default. Storage charges still
+# accrue while stopped; pass on_exit="delete" to free that too, or
+# on_exit="leave" to keep it running.
+```
+
+The session lists existing Codespaces, reuses one matching `repository`
+(and `ref` if specified), or creates one if none. It polls until
+`state == "Available"` (up to 240s) before returning control. `cs.run()`
+shells out to `gh codespace ssh` with `GH_TOKEN` populated from the same
+auth chain above — no separate `gh auth login` step needed on the agent.
+
 ## Headless notebook runs
 
 ```bash
