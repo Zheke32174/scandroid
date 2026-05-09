@@ -1,0 +1,82 @@
+# Cluster coherence check (mirror).
+#
+# Same workflow as undergrowth/.github/workflows/coherence.yml — runs
+# the coherence checker from undergrowth against the 5-repo cluster.
+# Triggered on every PR + push to this repo's default branch + daily
+# cron + manual dispatch.
+#
+# This mirror exists so PRs in this repo also trigger the drift check
+# (not just PRs in undergrowth). One workflow per cluster repo means
+# any change anywhere gets cross-checked against the rest.
+#
+# Requires a CLUSTER_PAT secret with read access to all 5 cluster
+# repos. Without it, the cross-repo checkouts (including undergrowth,
+# which carries the script) fail and the coherence step fails loudly.
+# The workflow is strict by design — silently passing without coverage
+# is what this exists to prevent.
+
+name: cluster coherence
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "43 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  coherence:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout scandroid
+        uses: actions/checkout@v4
+        with:
+          path: scandroid
+
+      - name: Checkout undergrowth (carries the script)
+        uses: actions/checkout@v4
+        with:
+          repository: Zheke32174/undergrowth
+          path: undergrowth
+          token: ${{ secrets.CLUSTER_PAT || github.token }}
+        continue-on-error: true
+
+      - name: Checkout understory
+        uses: actions/checkout@v4
+        with:
+          repository: Zheke32174/understory
+          path: understory
+          ref: master
+          token: ${{ secrets.CLUSTER_PAT || github.token }}
+        continue-on-error: true
+
+      - name: Checkout system-soul-backup
+        uses: actions/checkout@v4
+        with:
+          repository: Zheke32174/system-soul-backup
+          path: system-soul-backup
+          token: ${{ secrets.CLUSTER_PAT || github.token }}
+        continue-on-error: true
+
+      - name: Checkout zub
+        uses: actions/checkout@v4
+        with:
+          repository: Zheke32174/zub
+          path: zub
+          token: ${{ secrets.CLUSTER_PAT || github.token }}
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run coherence check (strict)
+        env:
+          UNDERGROWTH_DIR: ${{ github.workspace }}/undergrowth
+        run: |
+          python3 undergrowth/tools/coherence-check.py \
+            --cluster-root ${{ github.workspace }} \
+            --strict
