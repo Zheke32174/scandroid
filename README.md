@@ -1,5 +1,7 @@
 # Scandroid
 
+📚 **Project docs**: <https://zheke32174.github.io/scandroid/>
+
 Utilities to bridge work across Google Colab, OpenAI Codex-compatible APIs, and GitHub from a single notebook—without writing secrets or artifacts to local disk. You can keep everything in-memory and avoid mounting Drive if you have **no local space** available.
 
 Part of a 5-repo cluster — see [CLUSTER.md](CLUSTER.md) for the
