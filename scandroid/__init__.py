@@ -15,6 +15,9 @@ Submodules:
   ``colab_endpoint.json`` schema the cluster speaks.
 - ``scandroid.bridge``: high-level discover/generate.
 - ``scandroid.codespaces``: GitHub Codespaces REST API helpers.
+- ``scandroid.approval``: agent action 2FA gate. Posts approval
+  requests to a Cloudflare Worker; user resolves on phone via push
+  + aegis TOTP. See worker/README.md for deploy.
 """
 from integrations import (  # noqa: F401
     mount_colab_drive,

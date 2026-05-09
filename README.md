@@ -95,6 +95,36 @@ The notebook updates this file whenever the tunnel URL changes (e.g. ngrok
 session renewal). Any consumer — `scandroid.bridge.discover()`,
 `colab-watcher`, a hand-rolled curl — picks up the new URL on next read.
 
+## Agent action 2FA gate (`scandroid.approval`)
+
+Agents posting requests for the user to approve a high-stakes action
+(post a Gist, run a script, send a message). The user resolves on
+phone via a push notification + a 6-digit TOTP code from aegis. Three
+distinct secrets keep agent / push / user roles cleanly separated:
+compromise of any one alone cannot approve an action.
+
+```python
+from scandroid.approval import request, wait
+
+req = request(
+    action="post_gist",
+    details={"description": "snapshot of nightly run"},
+    ttl_seconds=300,
+)
+# User gets a push, opens the URL, enters USER_TOKEN + current
+# TOTP from aegis, taps Approve.
+result = wait(req["request_id"], timeout=120)
+if result["status"] == "approved":
+    do_the_action()
+else:
+    raise PermissionError(f"approval not granted: {result['status']}")
+```
+
+Backend is a Cloudflare Worker + KV namespace + ntfy.sh push channel —
+see `worker/README.md` for the deploy walkthrough. Aligned with the
+cluster's [`AI-PARTICIPANTS-TOS-RULE.md`](https://github.com/Zheke32174/understory/blob/main/AI-PARTICIPANTS-TOS-RULE.md):
+identity-honest credentials, scope-honored capabilities.
+
 ## Codespaces from a VM (`scandroid.codespaces`)
 
 Wraps the GitHub Codespaces REST API so an agent can drive a Codespace as
