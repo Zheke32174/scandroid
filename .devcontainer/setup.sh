@@ -30,4 +30,11 @@ if ! command -v brew &> /dev/null; then
   eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 fi
 
+# Install the scandroid namespace so `from scandroid import …` works in any
+# python/ipython invoked inside the Codespace. Mirrors the SessionStart hook
+# Claude Code uses on local + remote sessions.
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+python3 -m pip install --user -e "$REPO_ROOT" \
+  || python3 -m pip install --user --break-system-packages -e "$REPO_ROOT"
+
 echo "Persistent Codespace environment is ready!"

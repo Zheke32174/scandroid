@@ -26,16 +26,57 @@ baseline pin) lives in the private `undergrowth` repo. scandroid's
 there.
 
 ## Contents
-- `scandroid.ipynb`: Notebook with ready-to-run cells for Colab, Codex, and GitHub connectivity.
-- `integrations.py`: Lightweight helpers for mounting Google Drive in Colab, calling OpenAI models, and retrieving GitHub user data.
+- `scandroid/`: Python package — re-exports the helpers from `integrations.py` and adds `scandroid.codespaces` for GitHub Codespaces REST control. Pip-installable.
+- `scandroid.ipynb`: Blank-slate notebook scaffold (parameters cell + namespace check). Runnable headlessly via papermill.
+- `integrations.py`: Original helpers for mounting Google Drive in Colab, calling OpenAI models, and retrieving GitHub user data. Re-exported under `scandroid`.
+- `.claude/hooks/session-start.sh`: SessionStart hook that pip-installs the package on every Claude Code session (local + remote).
+- `.devcontainer/setup.sh`: Codespaces post-create that does the same install.
 - `bridge_setup.md`: Notes on capturing filesystem snapshots (e.g., `groot.html`).
 
 ## Quick start
-1. Create a virtual environment (optional) and install the runtime dependencies:
+1. Install the package (editable). Pulls `openai` + `requests` and exposes the
+   `scandroid` namespace anywhere on `sys.path`:
    ```bash
-   pip install --upgrade openai requests
+   pip install --user -e .
+   # optional extras:
+   pip install --user -e .[papermill]   # headless notebook execution
    ```
 2. Open the notebook directly in Colab using the badge at the top of `scandroid.ipynb` or via [this link](https://colab.research.google.com/github/Zheke32174/scandroid/blob/main/scandroid.ipynb).
+
+## Agent access paths
+The `scandroid` namespace is preloaded automatically in three environments so
+any agent — local CLI or remote VM — can `from scandroid import …` without
+extra setup:
+
+- **Claude Code (local CLI or remote VM on the web)**: the SessionStart hook
+  at `.claude/hooks/session-start.sh` runs `pip install --user -e .` on every
+  session start. Registered via `.claude/settings.json`.
+- **GitHub Codespaces**: `.devcontainer/setup.sh` runs the same install during
+  `postCreateCommand`.
+- **Anywhere else**: `pip install -e .` from a fresh checkout.
+
+## Headless notebook runs (optional)
+```bash
+papermill scandroid.ipynb out.ipynb -p label demo
+```
+The notebook has a `parameters`-tagged cell (`label = "default"`) that
+papermill overwrites at runtime. The default scaffold prints
+`runtime_context()` so a successful execution doubles as a smoke test.
+
+## Codespaces from a VM (`scandroid.codespaces`)
+Wraps the GitHub Codespaces REST API so an agent can drive a Codespace as
+backing compute without a local `gh` install:
+
+```python
+from scandroid.codespaces import (
+    list_codespaces, create_codespace, start_codespace,
+    stop_codespace, delete_codespace, exec_in_codespace,
+)
+# Requires GITHUB_TOKEN with the `codespace` scope.
+```
+`exec_in_codespace` shells out to `gh codespace ssh` and is the only function
+that requires the `gh` CLI on the calling VM (the REST API has no direct
+remote-exec endpoint).
 3. Add your secrets as environment variables inside Colab or your local shell. In ephemeral environments (e.g., Colab), prefer in-memory variables so nothing touches local storage:
    ```bash
    export OPENAI_API_KEY="sk-..."
