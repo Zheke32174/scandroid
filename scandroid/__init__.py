@@ -21,6 +21,13 @@ Submodules:
   ``scandroid.oauth.authorize()`` once on the agent VM; user
   approves on their phone / laptop; the agent gets a long-lived
   access token without a PAT.
+- ``scandroid.google``: Google APIs (Drive, userinfo) — same
+  Session/auth shape as scandroid.codespaces but for Google.
+- ``scandroid.google_oauth``: Google OAuth device-flow helpers.
+  Same shape as scandroid.oauth, with refresh_token support
+  (Google issues one for device flow). Requires the operator to
+  register an OAuth Client at console.cloud.google.com (no public
+  client_id we can borrow like GitHub CLI's).
 - ``scandroid.approval``: agent action 2FA gate. Posts approval
   requests to a Cloudflare Worker; user resolves on phone via push
   + aegis TOTP. See worker/README.md for deploy.
