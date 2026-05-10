@@ -70,6 +70,7 @@ nav:
     - OAuth device flow: oauth.md
     - Session ctxmgr: codespaces.md
   - Agent action 2FA: agent-2fa-gate.md
+  - Operator test walkthrough: operator-test-walkthrough.md
   - Posts:
     - Index: posts/index.md
 

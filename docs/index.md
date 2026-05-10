@@ -84,6 +84,23 @@ pip install git+https://github.com/Zheke32174/scandroid.git
 Requires Python 3.9+. Uses only stdlib + `requests` (and `gh` CLI
 for the Codespaces shell-out).
 
+## Verifying it works
+
+Agent-side smoke test on any VM after install — runs without
+operator interaction:
+
+```bash
+python3 scripts/smoke-test.py
+# 12/12 passed
+# Agent-side surface healthy.
+```
+
+For full end-to-end (needs phone + GitHub account), see the
+[operator test walkthrough](operator-test-walkthrough.md). It
+covers OAuth device-flow approval, Codespace lifecycle, notebook
+publish, Pages deploy, and the Android device-snapshot path —
+each with concrete pass criteria and common failure modes.
+
 ## Why public
 
 The understory cluster is mostly private. scandroid is the
