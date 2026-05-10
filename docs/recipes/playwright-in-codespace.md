@@ -98,28 +98,87 @@ on subsequent runs (cached).
 
 ## Extending: authenticated targets
 
-For sites that need login (Colab, Sheets, GitHub UI, etc.), the
-agent can't fill the password field — operator has to. Pattern:
+For sites that need login (Google, ChatGPT, Sheets, GitHub UI, etc.),
+the agent can't fill the password field — operator has to. **Field-tested
+2026-05-09**: this whole stack works.
 
-1. Install Xvfb + x11vnc + websockify + noVNC in the Codespace.
-2. Launch Chromium **headed** with `--remote-debugging-port=9222`,
-   on the virtual display.
-3. `gh codespace ports forward 6080:6080 -c <name>` and set
-   visibility to public for the noVNC port.
-4. Send operator the public URL: `https://<codespace>-6080.app.github.dev/vnc.html`.
-5. Operator opens, sees the Chromium UI, signs in to whatever site,
-   walks away.
-6. From agent VM: connect Playwright to the running Chromium via
-   `playwright.chromium.connect_over_cdp("http://<codespace-cdp-url>:9222")`
-   and drive normally — Chromium's profile retains the auth cookies
-   from the operator's login.
+### Architecture (proven)
 
-This is documented as a separate recipe rather than inline because it
-crosses the "operator does a UI thing" boundary and the failure modes
-(VNC latency, Google anti-bot, port visibility) are different.
+1. Install Xvfb + x11vnc + websockify + noVNC in the Codespace:
+   ```bash
+   sudo apt-get install -y xvfb x11vnc websockify novnc
+   ```
+2. Launch Xvfb (virtual display :99):
+   ```bash
+   nohup Xvfb :99 -screen 0 1280x800x24 -ac > /tmp/xvfb.log 2>&1 < /dev/null &
+   ```
+3. Launch Chromium **headed** with `--remote-debugging-port=9222` on
+   the virtual display:
+   ```bash
+   DISPLAY=:99 nohup ~/.cache/ms-playwright/chromium-1217/chrome-linux64/chrome \
+     --no-sandbox --disable-dev-shm-usage --disable-gpu \
+     --user-data-dir=$HOME/.scandroid-chrome-vnc-profile \
+     --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0 \
+     --window-size=1280,800 \
+     about:blank > /tmp/chrome.log 2>&1 < /dev/null &
+   ```
+4. Start x11vnc against display :99 (localhost-only, the public bridge
+   is the noVNC layer):
+   ```bash
+   nohup x11vnc -display :99 -nopw -listen localhost -forever -shared \
+     > /tmp/x11vnc.log 2>&1 < /dev/null &
+   ```
+5. Start noVNC + websockify on port 6080:
+   ```bash
+   nohup websockify --web /usr/share/novnc 6080 localhost:5900 \
+     > /tmp/novnc.log 2>&1 < /dev/null &
+   ```
+6. From agent VM, forward 6080 publicly + 9222 privately:
+   ```python
+   subprocess.Popen(["gh", "codespace", "ports", "forward", "6080:6080", "-c", NAME], ...)
+   subprocess.run(["gh", "codespace", "ports", "visibility", "6080:public", "-c", NAME], ...)
+   subprocess.Popen(["gh", "codespace", "ports", "forward", "9222:9222", "-c", NAME], ...)
+   ```
+7. Send operator the public URL:
+   `https://<codespace-name>-6080.app.github.dev/vnc.html`
+8. Operator opens, taps Connect, sees Chromium UI, signs in to whatever
+   site, walks away.
+9. From agent VM: connect Playwright to the running Chromium via CDP
+   over the private port-forward:
+   ```python
+   browser = p.chromium.connect_over_cdp("http://localhost:9222")
+   ctx = browser.contexts[0]
+   page = ctx.pages[0]  # whatever tab the operator left open
+   # Drive normally — Chromium's profile retains the auth cookies from
+   # the operator's login.
+   ```
 
-ToS posture: see BLUEPRINT §9f. Authenticated-target browser
-automation is a gray-zone path; do it with eyes open and prefer
-documented APIs (Drive deposit, Codespace shell, etc.) where
-available. The recipe is here for cases where no documented path
-exists.
+### What works through this stack (measured)
+
+- **Cloudflare Turnstile passes silently** for headed Chromium on
+  Codespace IP — verified against `chatgpt.com` (anonymous tier).
+  Headless Chromium gets challenged; headed does not.
+- **Anonymous ChatGPT** — full prompt + response cycle without operator
+  interaction. See [chatgpt-anonymous-via-codespace.md](chatgpt-anonymous-via-codespace.md).
+- **Operator one-time login flows via VNC** — phone tap on noVNC URL,
+  log in to Google/Microsoft/whatever in the embedded Chromium.
+
+### What doesn't work through this stack (measured)
+
+- **Surrogate Google login** — Google's modern auth is passkey-first
+  for accounts with passkeys enabled. Even with operator passing
+  passkey via VNC, Google's risk-scoring escalates to "account
+  recovery" mode after multi-method cycling, which then refuses TOTP
+  as a primary factor. This is by design at the account level, not
+  fixable at the agent level.
+- **High-rate access to authenticated services** — Cloudflare
+  re-challenges sessions that exhibit non-human patterns. Bursty
+  usage is OK; sustained automation gets flagged.
+
+ToS posture: see BLUEPRINT §9f. Browser automation against
+authenticated services is gray-zone; we crossed it explicitly for the
+boundary-mapping experiment, with the operator handling the actual
+auth steps. Production uses should prefer documented APIs.
+
+See [agent-reach-boundaries.md](../agent-reach-boundaries.md) for the
+full reach matrix.

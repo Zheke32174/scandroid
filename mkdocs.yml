@@ -72,9 +72,12 @@ nav:
   - Codespaces:
     - Session ctxmgr: codespaces.md
   - Agent action 2FA: agent-2fa-gate.md
+  - Agent reach boundaries: agent-reach-boundaries.md
   - Recipes:
     - Drive deposit (notebook handoff): recipes/drive-deposit.md
     - Playwright in a Codespace: recipes/playwright-in-codespace.md
+    - Bitwarden CLI bridge: recipes/bitwarden-bridge.md
+    - ChatGPT anonymous via Codespace: recipes/chatgpt-anonymous-via-codespace.md
   - Operator test walkthrough: operator-test-walkthrough.md
   - Posts:
     - Index: posts/index.md
