@@ -1,87 +1,46 @@
-# Scandroid
+# scandroid
 
-Utilities to bridge work across Google Colab, OpenAI Codex-compatible APIs, and GitHub from a single notebook—without writing secrets or artifacts to local disk. You can keep everything in-memory and avoid mounting Drive if you have **no local space** available.
+Bridge utilities for Colab + GitHub + AI workflows from a single
+notebook — no secrets to local disk, OAuth-only auth, lightweight
+Python module.
 
-Part of a 5-repo cluster — see [CLUSTER.md](CLUSTER.md) for the
-4-body nucleic orbit + connection house topology. This repo is a
-**sapling** — an artifact produced by the understory trunk that
-demonstrates Colab ↔ Codex ↔ GitHub bridge coordination.
+## Install
 
-## Public bridge
-
-scandroid is the only public cluster repo. The other 4 cluster
-repos (undergrowth, understory, system-soul-backup, zub) are
-private. scandroid is deliberately public so unauthenticated
-agents and readers can:
-
-- See the cluster's topology ([CLUSTER.md](CLUSTER.md))
-- Discover what the cluster is and how it fits together
-- Read scandroid's own bridge code as a self-contained example
-- Find pointers to the public framework repos the cluster inherits from
-
-The full operational documentation (full `INHERIT.md`,
-`BLUEPRINT.md`, `inherit/baseline.py`, `deploy/`, agent registry,
-baseline pin) lives in the private `undergrowth` repo. scandroid's
-[`INHERIT.md`](INHERIT.md) here is a redacted public stub pointing
-there.
-
-## Contents
-- `scandroid.ipynb`: Notebook with ready-to-run cells for Colab, Codex, and GitHub connectivity.
-- `integrations.py`: Lightweight helpers for mounting Google Drive in Colab, calling OpenAI models, and retrieving GitHub user data.
-- `bridge_setup.md`: Notes on capturing filesystem snapshots (e.g., `groot.html`).
-
-## Quick start
-1. Create a virtual environment (optional) and install the runtime dependencies:
-   ```bash
-   pip install --upgrade openai requests
-   ```
-2. Open the notebook directly in Colab using the badge at the top of `scandroid.ipynb` or via [this link](https://colab.research.google.com/github/Zheke32174/scandroid/blob/main/scandroid.ipynb).
-3. Add your secrets as environment variables inside Colab or your local shell. In ephemeral environments (e.g., Colab), prefer in-memory variables so nothing touches local storage:
-   ```bash
-   export OPENAI_API_KEY="sk-..."
-   export GITHUB_TOKEN="ghp_..."  # or GH_TOKEN
-   ```
-   Or inside a notebook:
-   ```python
-   import getpass
-   from integrations import set_runtime_secrets
-
-   set_runtime_secrets(
-       openai_api_key=getpass.getpass("OPENAI_API_KEY: "),
-       github_token=getpass.getpass("GITHUB_TOKEN: "),
-   )
-   ```
-
-## Using the helpers
-The `integrations.py` module exposes convenience functions:
-- `mount_colab_drive(force_remount=False)`: Mounts your Google Drive at `/content/drive` inside Colab.
-- `run_codex_completion(prompt, model="gpt-4o-mini", api_key=None, **kwargs)`: Sends a prompt to an OpenAI chat-completions model for code generation or assistance.
-- `get_github_user(token=None)`: Fetches the authenticated GitHub user profile using the provided token or `GITHUB_TOKEN`/`GH_TOKEN`.
-- `set_runtime_secrets(openai_api_key=None, github_token=None)`: Stores secrets in memory-backed environment variables so nothing is written to disk.
-- `runtime_ready(require_openai=True, require_github=True)`: Quickly verify whether the required secrets are present before connecting.
-- `runtime_context()`: Inspect whether you are running in Colab, whether Drive is mounted, and whether required tokens are present. Reads OS mount state but does not write to disk or persist anything.
-
-Example usage inside the notebook:
-```python
-from integrations import mount_colab_drive, run_codex_completion, get_github_user
-
-# Mount Google Drive (prompts for authorization inside Colab)
-# mount_colab_drive()
-
-# Query GitHub identity
-# me = get_github_user()
-# print(me["login"])
-
-# Generate code with Codex-style completion
-# code = run_codex_completion("Write a Python function that reverses a string")
-# print(code)
-
-# Inspect runtime state (no writes to disk)
-# from integrations import runtime_context
-# print(runtime_context())
+```bash
+pip install git+https://github.com/Zheke32174/scandroid.git
 ```
 
-## Tips
-- When running in GitHub Codespaces, the `.devcontainer` files will bootstrap a consistent environment.
-- Keep tokens in environment variables or a local secrets manager; avoid committing credentials to the repository.
-- Update `bridge_setup.md` if you change how filesystem snapshots are generated.
+Requires Python 3.9+. Uses stdlib + `requests`. The `gh` CLI is
+needed for the Codespaces shell-out (`gh codespace ssh`); install
+from <https://github.com/cli/cli>.
+
+## What's in here
+
+- **`scandroid/oauth.py`** — GitHub OAuth device flow
+- **`scandroid/google_oauth.py`** — Google OAuth device flow
+- **`scandroid/google.py`** — Drive / userinfo wrappers
+- **`scandroid/codespaces.py`** — Codespaces lifecycle + `Session` ctxmgr
+- **`scandroid/bridge.py`** — Colab endpoint discovery + inference helpers
+- **`scandroid/gist.py`** — Gist-as-shared-state primitives
+- **`scandroid/approval.py`** — Phone-tap approval gate client
+- **`scandroid.ipynb`** — Colab notebook for the GPU offload pattern
+- **`scripts/colab-bootstrap.py`** — One-liner Colab cell target
+- **`scripts/smoke-test.py`** — Agent-side surface verification
+- **`worker/`** — Cloudflare Worker source for the approval gate
+
+## Quick example
+
+```python
+from scandroid.codespaces import authorize, Session
+import scandroid as sd
+
+authorize()                     # one-time phone tap to grant OAuth
+print(sd.healthcheck(gist_id="...")["ok"])
+
+with Session(repository="zheke32174/scandroid") as cs:
+    print(cs.run("uname -a").stdout)
+```
+
+## License
+
+See [LICENSE](LICENSE).

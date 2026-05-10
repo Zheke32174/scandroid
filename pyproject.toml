@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scandroid"
+version = "0.1.0"
+description = "Colab <-> Codex <-> GitHub bridge namespace for the cluster sapling repo."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openai",
+    "requests",
+]
+
+[project.optional-dependencies]
+papermill = ["papermill", "ipykernel"]
+
+[tool.setuptools]
+packages = ["scandroid"]
+py-modules = ["integrations"]

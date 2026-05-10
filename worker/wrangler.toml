@@ -1,0 +1,24 @@
+name = "scandroid-approval"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# KV namespace for pending/approved/denied requests.
+# Create with: wrangler kv:namespace create APPROVALS
+# Then paste the returned id below.
+[[kv_namespaces]]
+binding = "APPROVALS"
+id = "PASTE-KV-ID-HERE"
+
+# Secrets (set via `wrangler secret put`):
+#   AGENT_TOKEN        — bearer token agents present on POST /request.
+#   USER_TOKEN         — bearer token the approval page requires.
+#   TOTP_SECRET_BASE32 — the shared TOTP secret. Same value the user
+#                        adds as an aegis entry (otpauth://totp/agent-
+#                        approval?secret=…). 160-bit base32, RFC 6238.
+#   NTFY_TOPIC         — ntfy.sh topic to push approval requests to.
+#   NTFY_AUTH          — optional bearer auth for ntfy if the topic is
+#                        access-controlled. Empty string for public.
+
+[vars]
+# Public / non-secret config goes here.
+# Leave empty; secrets handle the sensitive bits.
