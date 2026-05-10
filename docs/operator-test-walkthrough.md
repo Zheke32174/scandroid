@@ -23,6 +23,24 @@ will likely fail too — fix the install first.
 
 The walkthroughs below cover the operator-required parts.
 
+!!! note "If you can't run a shell locally"
+
+    Some operators run under a threat model where they don't execute
+    shells on any machine they control — the whole point is to keep
+    no local execution surface that a remote actor could tamper with
+    or swipe from. Under that constraint:
+
+    - Treat every `python3 ...` command in this doc as "your remote
+      agent VM runs this." That agent (Claude Code, OpenHands, a
+      Codespace you've sshed into, etc.) is the shell.
+    - Your role reduces to: tap Approve on the OAuth prompt your
+      phone receives, optionally watch the result on phone, optionally
+      flip the Pages source toggle once.
+    - Tokens land in the agent VM's filesystem, not yours. They die
+      when the agent VM dies. That's the point.
+
+    Same end-to-end behavior; the operator surface is just smaller.
+
 ## 1. OAuth device flow end-to-end
 
 What you're testing: `authorize()` correctly walks the operator
