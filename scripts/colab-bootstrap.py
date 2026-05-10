@@ -73,29 +73,34 @@ def _kill_prior() -> None:
 
 
 def _install_ollama() -> None:
-    """Direct binary install — bypasses the upstream installer's systemd
-    setup step, which fails on Colab (no systemd inside the container).
+    """Install Ollama on Colab/headless containers.
 
-    The installer downloads + extracts the same binary; it then ALSO
-    tries to register a systemd service. That last step fails on
-    sysvinit-style containers like Colab's. The binary is fine; only
-    the service registration breaks. By installing the binary
-    directly, we sidestep the failure.
+    Approach: run the official install.sh, ignore its exit code,
+    verify the binary landed.
+
+    Why: install.sh does two things — (1) download + place the
+    binary at /usr/local/bin/ollama (works everywhere), (2)
+    register a systemd service (fails on Colab, sysvinit-style
+    containers, anything without systemd). The script's exit code
+    reflects step (2)'s failure, but step (1) already succeeded
+    by then. Treating the script as "did it leave a working binary?"
+    rather than "did it exit 0?" is the right shape.
+
+    Earlier attempts in this file used a hand-built tar.gz download
+    from ollama.com — that URL doesn't actually exist; the tarball
+    lives on GitHub releases. Using install.sh and checking for
+    the binary is more robust than guessing URLs that move.
     """
     if os.path.exists("/usr/local/bin/ollama"):
-        return  # already installed; idempotent
-    r = _shell(
-        "curl -L https://ollama.com/download/ollama-linux-amd64.tgz "
-        "-o /tmp/ollama.tgz && "
-        "tar -C /usr/local -xzf /tmp/ollama.tgz && "
-        "chmod +x /usr/local/bin/ollama && "
-        "rm /tmp/ollama.tgz",
-        check=False,
-    )
-    if r.returncode != 0 or not os.path.exists("/usr/local/bin/ollama"):
+        return  # idempotent — already installed
+    # check=False because install.sh exits non-zero on Colab even
+    # when the binary install part succeeds.
+    _shell("curl -fsSL https://ollama.com/install.sh | sh", check=False)
+    if not os.path.exists("/usr/local/bin/ollama"):
         raise RuntimeError(
-            "Ollama binary install failed. stderr tail:\n"
-            f"{r.stderr[-500:] if r.stderr else '(no stderr)'}"
+            "Ollama install.sh ran but the binary wasn't placed at "
+            "/usr/local/bin/ollama. Try a manual download from "
+            "https://github.com/ollama/ollama/releases/latest"
         )
 
 
