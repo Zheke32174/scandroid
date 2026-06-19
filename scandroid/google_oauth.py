@@ -88,7 +88,7 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 # Per-flow temp file template — keyed by user_code so concurrent
 # device flows can't clobber each other (lesson from the GitHub flow
 # where a second begin() overwrote the first's device_code on disk).
-_DEVICE_FLOW_TMP_TEMPLATE = "/tmp/scandroid_devflow_google_{user_code}.json"
+import tempfile; _DEVICE_FLOW_TMP_TEMPLATE = os.path.join(tempfile.gettempdir(), "scandroid_devflow_google_{user_code}.json")
 
 
 def _config_dir() -> str:
