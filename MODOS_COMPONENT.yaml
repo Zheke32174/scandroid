@@ -1,0 +1,36 @@
+apiVersion: modos.pleiades/v1alpha1
+kind: Component
+metadata:
+  name: scandroid-edge-approval-gate
+  repository: Zheke32174/scandroid
+  visibility: public
+  lifecycle: operational
+  defaultBranch: main
+spec:
+  roles:
+    - android-edge-interface
+    - steward-approval-gate
+    - security-sapling
+  authority: local-enforcement
+  inputs:
+    - bounded-action-requests
+    - user-approval
+    - second-factor-proof
+  outputs:
+    - signed-approval-decisions
+    - mobile-security-observations
+  capabilitiesProvided:
+    - steward.approval.high-stakes
+    - android.edge.notify
+    - security.mobile.observe
+  capabilitiesRequired:
+    - identity.user.local
+    - secret.totp.verify
+    - network.private
+  dataClasses:
+    - public
+    - private
+    - secret
+  failurePolicy: fail-closed
+  promotionPolicy: signed-pr
+  notes: A model or remote agent cannot self-approve. High-stakes execution requires the separate steward approval path.
