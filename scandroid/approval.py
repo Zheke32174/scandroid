@@ -1,77 +1,87 @@
-"""Agent action 2FA gate — agent-side client for scandroid-approval Worker.
+"""Agent action approval gate client for the scandroid Worker.
 
-Pairs with the Cloudflare Worker at ``worker/src/index.ts`` and the
-TOTP entry the user adds to aegis (or any RFC 6238 TOTP authenticator).
-
-Typical use::
-
-    from scandroid.approval import request, wait
-
-    req = request(
-        action="post_gist",
-        details={"description": "snapshot of nightly run"},
-        ttl_seconds=300,
-    )
-    # User gets a push on their phone, opens the URL, types
-    # USER_TOKEN + the current TOTP code from aegis, taps Approve.
-    result = wait(req["request_id"], timeout=120)
-    if result["status"] == "approved":
-        # ... do the action ...
-        pass
-    else:
-        # denied / expired — abort and report.
-        raise PermissionError(f"approval not granted: {result['status']}")
-
-Configuration via env vars on the agent VM:
-
-- ``SCANDROID_APPROVAL_URL`` — Worker URL (e.g.
-  ``https://scandroid-approval.<account>.workers.dev``).
-- ``SCANDROID_AGENT_TOKEN`` — bearer token the Worker expects on
-  ``/request``, ``/status``, ``/cancel``.
-
-The agent never sees the ``USER_TOKEN`` or the TOTP secret — those are
-required only to *resolve* a request, which happens via the Worker's
-``/ui`` page on the user's phone.
-
-Aligned with the cluster's ``AI-PARTICIPANTS-TOS-RULE.md``:
-identity-honest credentials, scope-honored capabilities, no
-impersonation. The agent's token is write-only at the gate; the
-user's token + TOTP are resolve-only. Compromise of either alone
-cannot approve an action.
+The agent may create, inspect, wait for, or cancel a bounded request. It never
+receives the user token or TOTP secret used to resolve the request.
 """
 from __future__ import annotations
 
 import os
 import time
+import uuid
+from collections.abc import Mapping
 from typing import Any, Dict, Optional
+from urllib.parse import urlparse
 
 __all__ = ["request", "wait", "cancel", "status"]
 
+_MIN_TTL_SECONDS = 30
+_MAX_TTL_SECONDS = 3600
+_MAX_ACTION_LENGTH = 128
+_DEFAULT_HTTP_TIMEOUT = 15
+_TERMINAL_STATUSES = {"approved", "denied", "expired", "cancelled"}
+
 
 def _config(token: Optional[str], url: Optional[str]) -> tuple[str, str]:
-    u = url or os.environ.get("SCANDROID_APPROVAL_URL")
-    t = token or os.environ.get("SCANDROID_AGENT_TOKEN")
-    if not u:
-        raise ValueError(
-            "Set SCANDROID_APPROVAL_URL to the Worker URL "
-            "(e.g. https://scandroid-approval.<account>.workers.dev)."
-        )
-    if not t:
-        raise ValueError(
-            "Set SCANDROID_AGENT_TOKEN to the AGENT_TOKEN "
-            "configured on the Worker."
-        )
-    return u.rstrip("/"), t
+    raw_url = (url or os.environ.get("SCANDROID_APPROVAL_URL") or "").strip()
+    raw_token = (token or os.environ.get("SCANDROID_AGENT_TOKEN") or "").strip()
+    if not raw_url:
+        raise ValueError("Set SCANDROID_APPROVAL_URL to the approval Worker URL.")
+    if not raw_token:
+        raise ValueError("Set SCANDROID_AGENT_TOKEN to the Worker agent token.")
+
+    parsed = urlparse(raw_url)
+    local_host = parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+    if parsed.scheme not in {"https", "http"} or not parsed.netloc:
+        raise ValueError("SCANDROID_APPROVAL_URL must be an absolute HTTP(S) URL.")
+    if parsed.scheme != "https" and not local_host:
+        raise ValueError("SCANDROID_APPROVAL_URL must use HTTPS outside local development.")
+    if parsed.query or parsed.fragment:
+        raise ValueError("SCANDROID_APPROVAL_URL must not include a query or fragment.")
+    return raw_url.rstrip("/"), raw_token
 
 
 def _requests():
     try:
-        import requests  # noqa: F401
-    except ImportError as e:
+        import requests
+    except ImportError as error:
         raise RuntimeError(
-            "scandroid.approval requires 'requests'. Install with: pip install requests"
-        ) from e
-    return __import__("requests")
+            "scandroid.approval requires requests; install the scandroid package dependencies"
+        ) from error
+    return requests
+
+
+def _positive_timeout(value: int | float, name: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
+        raise ValueError(f"{name} must be a positive number")
+    return float(value)
+
+
+def _request_id(value: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError("request_id must be a UUID string")
+    try:
+        return str(uuid.UUID(value))
+    except (ValueError, AttributeError) as error:
+        raise ValueError("request_id must be a valid UUID") from error
+
+
+def _response_dict(response: Any) -> Dict[str, Any]:
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, Mapping):
+        raise RuntimeError("approval Worker returned a non-object JSON response")
+    return dict(payload)
+
+
+def _headers(token: str, *, json_body: bool = False) -> Dict[str, str]:
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "User-Agent": "scandroid-approval/0.1",
+    }
+    if json_body:
+        headers["Content-Type"] = "application/json"
+    return headers
 
 
 def request(
@@ -81,25 +91,38 @@ def request(
     ttl_seconds: int = 600,
     token: Optional[str] = None,
     url: Optional[str] = None,
-    timeout: int = 15,
+    timeout: int = _DEFAULT_HTTP_TIMEOUT,
 ) -> Dict[str, Any]:
-    """Post a new approval request.
+    """Create a bounded approval request and return its Worker record locator."""
+    if not isinstance(action, str) or not action.strip():
+        raise ValueError("action must be a non-empty string")
+    action = action.strip()
+    if len(action) > _MAX_ACTION_LENGTH:
+        raise ValueError(f"action must be at most {_MAX_ACTION_LENGTH} characters")
+    if details is not None and not isinstance(details, dict):
+        raise TypeError("details must be a dictionary when provided")
+    if isinstance(ttl_seconds, bool) or not isinstance(ttl_seconds, int):
+        raise TypeError("ttl_seconds must be an integer")
+    if not _MIN_TTL_SECONDS <= ttl_seconds <= _MAX_TTL_SECONDS:
+        raise ValueError(
+            f"ttl_seconds must be between {_MIN_TTL_SECONDS} and {_MAX_TTL_SECONDS}"
+        )
 
-    Returns ``{request_id, expires_at, approve_url}``. The user gets a
-    push notification with ``approve_url``; the agent should
-    immediately call :func:`wait` with the returned id.
-    """
-    u, t = _config(token, url)
-    rq = _requests()
-    body = {"action": action, "details": details or {}, "ttl_seconds": ttl_seconds}
-    r = rq.post(
-        f"{u}/request",
-        headers={"Authorization": f"Bearer {t}", "Content-Type": "application/json"},
-        json=body,
-        timeout=timeout,
+    request_timeout = _positive_timeout(timeout, "timeout")
+    worker_url, agent_token = _config(token, url)
+    response = _requests().post(
+        f"{worker_url}/request",
+        headers=_headers(agent_token, json_body=True),
+        json={"action": action, "details": details or {}, "ttl_seconds": ttl_seconds},
+        timeout=request_timeout,
     )
-    r.raise_for_status()
-    return r.json()
+    payload = _response_dict(response)
+    payload["request_id"] = _request_id(payload.get("request_id", ""))
+    if not isinstance(payload.get("expires_at"), int):
+        raise RuntimeError("approval Worker response omitted integer expires_at")
+    if not isinstance(payload.get("approve_url"), str):
+        raise RuntimeError("approval Worker response omitted approve_url")
+    return payload
 
 
 def status(
@@ -107,24 +130,25 @@ def status(
     *,
     token: Optional[str] = None,
     url: Optional[str] = None,
-    timeout: int = 15,
+    timeout: int = _DEFAULT_HTTP_TIMEOUT,
 ) -> Dict[str, Any]:
-    """One-shot status check; doesn't block.
-
-    Returns the full record: ``{request_id, status, action, details,
-    created_at, expires_at, resolved_at?}``. ``status`` is one of
-    ``pending`` / ``approved`` / ``denied`` / ``expired``.
-    """
-    u, t = _config(token, url)
-    rq = _requests()
-    r = rq.get(
-        f"{u}/status",
-        headers={"Authorization": f"Bearer {t}"},
-        params={"id": request_id},
-        timeout=timeout,
+    """Read one approval request without blocking."""
+    normalized_id = _request_id(request_id)
+    request_timeout = _positive_timeout(timeout, "timeout")
+    worker_url, agent_token = _config(token, url)
+    response = _requests().get(
+        f"{worker_url}/status",
+        headers=_headers(agent_token),
+        params={"id": normalized_id},
+        timeout=request_timeout,
     )
-    r.raise_for_status()
-    return r.json()
+    payload = _response_dict(response)
+    if payload.get("request_id") != normalized_id:
+        raise RuntimeError("approval Worker returned a mismatched request_id")
+    state = payload.get("status")
+    if state not in {"pending", *_TERMINAL_STATUSES}:
+        raise RuntimeError(f"approval Worker returned unknown status: {state!r}")
+    return payload
 
 
 def wait(
@@ -135,25 +159,20 @@ def wait(
     token: Optional[str] = None,
     url: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """Poll until the request is resolved or [timeout] seconds elapse.
-
-    Returns the same record shape as :func:`status` with a terminal
-    status. If the user never resolves and the request TTL passes,
-    the Worker self-marks the record ``expired``.
-
-    ``timeout`` here is the agent-side polling cap; the request's
-    own TTL is set at creation time (``ttl_seconds`` on
-    :func:`request`). If your action TTL is longer than ``timeout``,
-    you'll get a record with ``status="pending"`` when this returns —
-    treat that as "no decision yet, your call to retry or abort."
-    """
-    deadline = time.monotonic() + timeout
+    """Poll until a terminal state or the local polling deadline is reached."""
+    normalized_id = _request_id(request_id)
+    local_timeout = _positive_timeout(timeout, "timeout")
+    interval = _positive_timeout(poll_interval, "poll_interval")
+    deadline = time.monotonic() + local_timeout
     last: Dict[str, Any] = {}
     while time.monotonic() < deadline:
-        last = status(request_id, token=token, url=url)
-        if last.get("status") in {"approved", "denied", "expired"}:
+        last = status(normalized_id, token=token, url=url)
+        if last.get("status") in _TERMINAL_STATUSES:
             return last
-        time.sleep(poll_interval)
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        time.sleep(min(interval, remaining))
     return last
 
 
@@ -162,18 +181,19 @@ def cancel(
     *,
     token: Optional[str] = None,
     url: Optional[str] = None,
-    timeout: int = 15,
+    timeout: int = _DEFAULT_HTTP_TIMEOUT,
 ) -> Dict[str, Any]:
-    """Withdraw a pending request. Useful when an agent's plan
-    changes after submitting a request but before the user resolves.
-    """
-    u, t = _config(token, url)
-    rq = _requests()
-    r = rq.post(
-        f"{u}/cancel",
-        headers={"Authorization": f"Bearer {t}", "Content-Type": "application/json"},
-        json={"request_id": request_id},
-        timeout=timeout,
+    """Ask the Worker to cancel a still-pending request."""
+    normalized_id = _request_id(request_id)
+    request_timeout = _positive_timeout(timeout, "timeout")
+    worker_url, agent_token = _config(token, url)
+    response = _requests().post(
+        f"{worker_url}/cancel",
+        headers=_headers(agent_token, json_body=True),
+        json={"request_id": normalized_id},
+        timeout=request_timeout,
     )
-    r.raise_for_status()
-    return r.json()
+    payload = _response_dict(response)
+    if payload.get("request_id") not in {None, normalized_id}:
+        raise RuntimeError("approval Worker returned a mismatched request_id")
+    return payload
