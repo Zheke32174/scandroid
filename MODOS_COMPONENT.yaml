@@ -1,0 +1,45 @@
+apiVersion: modos.pleiades/v1alpha1
+kind: Component
+metadata:
+  name: scandroid-colab-approval-bridge
+  repository: Zheke32174/scandroid
+  visibility: public
+  lifecycle: operational
+  defaultBranch: main
+spec:
+  roles:
+    - colab-github-bridge
+    - cloud-approval-gate
+    - public-cluster-sapling
+    - codespaces-session-adapter
+  authority: local-enforcement
+  inputs:
+    - bounded-action-requests
+    - agent-bearer-proof
+    - user-token-proof
+    - totp-proof
+    - oauth-device-flow-grants
+  outputs:
+    - authenticated-approval-status
+    - bridge-health-observations
+    - codespace-session-results
+    - public-cluster-topology
+  capabilitiesProvided:
+    - steward.approval.remote-gate
+    - colab.bridge
+    - codespace.session.scoped
+    - oauth.device-flow.client
+  capabilitiesRequired:
+    - identity.agent.token.verify
+    - identity.user.token.verify
+    - totp.verify
+    - network.public
+    - state.kv.pending-request
+  dataClasses:
+    - public
+    - private
+    - secret
+    - untrusted
+  failurePolicy: fail-closed
+  promotionPolicy: signed-pr
+  notes: Scandroid is a Python/Colab and Cloudflare Worker bridge, not an Android application. Approval records are authenticated by separate agent and user/TOTP factors but are not yet cryptographically signed. KV-backed resolution is not promoted as globally linearizable authority.
