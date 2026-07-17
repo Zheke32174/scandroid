@@ -1,0 +1,56 @@
+name: Validate Scandroid
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile Python sources
+        run: python -m compileall -q scandroid scripts tests integrations.py
+      - name: Run approval client tests
+        run: python -m unittest discover -s tests -v
+      - name: Build package
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+  public-surface:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse project and Worker TOML
+        run: |
+          python3 - <<'PY'
+          import tomllib
+          from pathlib import Path
+          for name in ('pyproject.toml', 'worker/wrangler.toml'):
+              with Path(name).open('rb') as handle:
+                  tomllib.load(handle)
+              print(f'TOML OK: {name}')
+          PY
+      - name: Reject committed secret shapes
+        run: |
+          set -euo pipefail
+          hits=$(grep -RInE \
+            'BEGIN (OPENSSH|RSA|EC) PRIVATE KEY|gh[pousr]_[A-Za-z0-9_]{30,}|sk-[A-Za-z0-9_-]{20,}|TOTP_SECRET_BASE32[[:space:]]*=[[:space:]]*[A-Z2-7]{16,}' \
+            --exclude-dir=.git --exclude='*.md' . || true)
+          if [[ -n "$hits" ]]; then
+            echo 'Potential secret material found:' >&2
+            echo "$hits" >&2
+            exit 1
+          fi
+      - name: Verify canonical cluster document exists
+        run: |
+          test -s CLUSTER.md
+          sha256sum CLUSTER.md
