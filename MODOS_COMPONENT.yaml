@@ -1,36 +1,45 @@
 apiVersion: modos.pleiades/v1alpha1
 kind: Component
 metadata:
-  name: scandroid-edge-approval-gate
+  name: scandroid-colab-approval-bridge
   repository: Zheke32174/scandroid
   visibility: public
   lifecycle: operational
   defaultBranch: main
 spec:
   roles:
-    - android-edge-interface
-    - steward-approval-gate
-    - security-sapling
+    - colab-github-bridge
+    - cloud-approval-gate
+    - public-cluster-sapling
+    - codespaces-session-adapter
   authority: local-enforcement
   inputs:
     - bounded-action-requests
-    - user-approval
-    - second-factor-proof
+    - agent-bearer-proof
+    - user-token-proof
+    - totp-proof
+    - oauth-device-flow-grants
   outputs:
-    - signed-approval-decisions
-    - mobile-security-observations
+    - authenticated-approval-status
+    - bridge-health-observations
+    - codespace-session-results
+    - public-cluster-topology
   capabilitiesProvided:
-    - steward.approval.high-stakes
-    - android.edge.notify
-    - security.mobile.observe
+    - steward.approval.remote-gate
+    - colab.bridge
+    - codespace.session.scoped
+    - oauth.device-flow.client
   capabilitiesRequired:
-    - identity.user.local
-    - secret.totp.verify
-    - network.private
+    - identity.agent.token.verify
+    - identity.user.token.verify
+    - totp.verify
+    - network.public
+    - state.kv.pending-request
   dataClasses:
     - public
     - private
     - secret
+    - untrusted
   failurePolicy: fail-closed
   promotionPolicy: signed-pr
-  notes: A model or remote agent cannot self-approve. High-stakes execution requires the separate steward approval path.
+  notes: Scandroid is a Python/Colab and Cloudflare Worker bridge, not an Android application. Approval records are authenticated by separate agent and user/TOTP factors but are not yet cryptographically signed. KV-backed resolution is not promoted as globally linearizable authority.
