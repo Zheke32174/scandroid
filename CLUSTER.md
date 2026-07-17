@@ -29,31 +29,31 @@ nucleic orbit + 1 connection house**:
 
 ```
       ┌────────────────────────────────────┐
-      │        4-body nucleic orbit        │
-      │                                    │
-      │            ┌──────────────┐        │
-      │            │  undergrowth │        │
-      │            │  blueprint   │        │
-      │            └───────┬──────┘        │
-      │                    │ inherited by  │
-      │                    ▼               │
-      │            ┌──────────────┐        │
-      │            │  understory  │        │
-      │            │    trunk     │        │
-      │            └──┬─────────┬─┘        │
-      │   snapshots   │         │ produces│
-      │               ▼         ▼         │
-      │       ┌────────────┐ ┌────────────┐│
-      │       │system-soul-│ │ scandroid  ││
-      │       │   backup   │ │  sapling   ││
-      │       └────────────┘ └────────────┘│
-      └────────────────┬───────────────────┘
+      │        4-body nucleic orbit            │
+      │                                        │
+      │            ┌──────────────┐            │
+      │            │  undergrowth │            │
+      │            │  blueprint   │            │
+      │            └───────┬──────┘            │
+      │                    │ inherited by      │
+      │                    ▼                   │
+      │            ┌──────────────┐            │
+      │            │  understory  │            │
+      │            │    trunk     │            │
+      │            └──┬─────────┬─┘            │
+      │   snapshots   │         │ produces    │
+      │               ▼         ▼             │
+      │       ┌────────────┐ ┌────────────┐   │
+      │       │system-soul-│ │ scandroid  │   │
+      │       │   backup   │ │  sapling   │   │
+      │       └────────────┘ └────────────┘   │
+      └────────────────┬─────────────────────┘
                        │ accessed by author via
                        ▼
                ┌──────────────┐
-               │     zub      │   connection house
-               │  (adjacent;  │   (human-only;
-               │ not orbiting)│    no autonomous edits)
+               │     zub        │   connection house
+               │  (adjacent;    │   (human-only;
+               │   not orbiting)│    no autonomous edits)
                └──────────────┘
 ```
 
