@@ -1,0 +1,48 @@
+apiVersion: modos.pleiades/v1alpha1
+kind: Component
+metadata:
+  name: scandroid-public-bridge
+  repository: Zheke32174/scandroid
+  visibility: public
+  lifecycle: operational
+  defaultBranch: main
+  labels:
+    modos.pleiades/subsystem: application-canopy
+    modos.pleiades/organ-class: public-bridge
+spec:
+  roles:
+    - public-cluster-bridge
+    - produced-application-artifact
+    - colab-codex-github-integration-surface
+  authority: proposal
+  inputs:
+    - steward-scoped-bridge-intent
+    - bounded-external-service-results
+    - public-cluster-metadata
+  outputs:
+    - bridge-results
+    - integration-diagnostics
+    - public-safe-observations
+  capabilitiesProvided:
+    - bridge.scandroid.public@v1
+  capabilitiesRequired:
+    - governance.contract.validate@v1alpha1
+  dataClasses:
+    - public
+    - internal
+    - untrusted
+  failurePolicy: fail-closed
+  promotionPolicy: evidence-gated
+  relations:
+    - type: produced-by
+      targetRef: repo:Zheke32174/understory
+      scope: lineage
+      required: false
+    - type: governed-by
+      targetRef: repo:Zheke32174/pleiades
+      scope: governance
+      required: true
+  notes: >-
+    Scandroid is a public bridge and produced artifact, not the canonical source
+    of the private cluster. External content and service results remain untrusted
+    until independently validated.
